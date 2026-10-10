@@ -89,7 +89,8 @@
             align-items: center;
             text-align: center;
             padding: 0 5%;
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('productos/imagenes/modelos/ModeloAurora.jpeg') center/cover;
+            /* Aquí usamos una de tus fotos como fondo. Ajusta el nombre si quieres otra */
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('imagenes/modelos/ModeloAurora.jpeg') center/cover;
             color: var(--white);
         }
 
@@ -350,35 +351,35 @@
         <div class="catalog-grid">
             <!-- Modelo Alba -->
             <div class="product-card">
-                <img src="productos/imagenes/modelos/ModeloAlba.jpeg" alt="Modelo Alba">
+                <img src="imagenes/modelos/ModeloAlba.jpeg" alt="Modelo Alba">
                 <h3>Modelo Alba</h3>
                 <p>Elegancia clásica con borla y herraje dorado.</p>
                 <p class="price">$34.000</p>
             </div>
             <!-- Modelo Aurora -->
             <div class="product-card">
-                <img src="productos/imagenes/modelos/ModeloAurora.jpeg" alt="Modelo Aurora">
+                <img src="imagenes/modelos/ModeloAurora.jpeg" alt="Modelo Aurora">
                 <h3>Modelo Aurora</h3>
                 <p>Diseño sofisticado con detalles únicos.</p>
                 <p class="price">$45.000</p>
             </div>
             <!-- Modelo Rocío -->
             <div class="product-card">
-                <img src="productos/imagenes/modelos/ModeloRocio.jpeg" alt="Modelo Rocío">
+                <img src="imagenes/modelos/ModeloRocio.jpeg" alt="Modelo Rocío">
                 <h3>Modelo Rocío</h3>
                 <p>Perlas y estilo para un look inolvidable.</p>
                 <p class="price">$32.000</p>
             </div>
             <!-- Modelo Bruma -->
             <div class="product-card">
-                <img src="productos/imagenes/modelos/ModeloBruma.jpeg" alt="Mochila Bruma">
+                <img src="imagenes/modelos/ModeloBruma.jpeg" alt="Mochila Bruma">
                 <h3>Mochila Bruma</h3>
                 <p>Práctica y elegante para el día a día.</p>
                 <p class="price">$35.000</p>
             </div>
             <!-- Modelo Lumina -->
             <div class="product-card">
-                <img src="productos/imagenes/modelos/ModeloLumina.jpeg" alt="Modelo Lumina">
+                <img src="imagenes/modelos/ModeloLumina.jpeg" alt="Modelo Lumina">
                 <h3>Modelo Lumina</h3>
                 <p>Contraste perfecto con cadena de lujo.</p>
                 <p class="price">$40.000</p>
@@ -438,7 +439,7 @@
         <p style="margin-bottom: 20px; font-weight: 300;">Piezas tejidas a mano con detalles únicos.</p>
         <div class="social-links">
             <a href="https://instagram.com/saharchile.cl" target="_blank"><i class="fab fa-instagram"></i></a>
-            <a href="https://wa.me/56912345678" target="_blank"><i class="fab fa-whatsapp"></i></a>
+            <a href="https://wa.me/56968433508" target="_blank"><i class="fab fa-whatsapp"></i></a>
         </div>
         <p>&copy; 2026 Sahar. Todos los derechos reservados.</p>
     </footer>
@@ -483,8 +484,8 @@
             const price = selectedOption.getAttribute('data-price');
             const formattedPrice = parseInt(price).toLocaleString('es-CL');
             
-            // Reemplaza el número con tu número de WhatsApp real (formato internacional sin +)
-            const telefono = "56912345678"; 
+            // Número de WhatsApp actualizado (sin +, sin espacios)
+            const telefono = "56968433508"; 
             
             const mensaje = `Hola Sahar! 👋 Me encantaría cotizar una cartera personalizada.%0A%0A📌 *Modelo:* ${modelo}%0A🎨 *Color elegido:* ${colorName}%0A💰 *Precio base:* $${formattedPrice}%0A%0A¿Me pueden ayudar con el valor final y tiempo de confección?`;
             
