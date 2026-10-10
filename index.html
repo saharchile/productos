@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sahar | Carteras Tejidas a Mano</title>
-    <!-- Fuentes de Google -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-    <!-- Iconos FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
@@ -20,313 +18,125 @@
             --gray: #666666;
             --transition: all 0.3s ease;
         }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Montserrat', sans-serif; color: var(--dark); background-color: var(--white); line-height: 1.6; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 400; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Montserrat', sans-serif;
-            color: var(--dark);
-            background-color: var(--white);
-            line-height: 1.6;
-        }
-
-        h1, h2, h3 {
-            font-family: 'Playfair Display', serif;
-            font-weight: 400;
-        }
-
-        /* --- HEADER --- */
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 5%;
-            background: rgba(255, 255, 255, 0.95);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 5%; background: rgba(255, 255, 255, 0.95);
+            position: sticky; top: 0; z-index: 100;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-
         .logo {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.8rem;
-            letter-spacing: 2px;
-            color: var(--dark);
-            text-transform: uppercase;
-            border-bottom: 2px solid var(--gold);
-            padding-bottom: 2px;
+            font-family: 'Playfair Display', serif; font-size: 1.8rem;
+            letter-spacing: 2px; color: var(--dark); text-transform: uppercase;
+            border-bottom: 2px solid var(--gold); padding-bottom: 2px;
         }
+        .nav-links { display: none; }
 
-        .nav-links {
-            display: none;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--dark);
-            margin-left: 20px;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: var(--transition);
-        }
-
-        .nav-links a:hover {
-            color: var(--gold);
-        }
-
-        /* --- HERO --- */
         .hero {
-            height: 80vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
+            height: 80vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
             padding: 0 5%;
-            /* Aquí usamos una de tus fotos como fondo. Ajusta el nombre si quieres otra */
             background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('imagenes/modelos/ModeloAurora.jpeg') center/cover;
             color: var(--white);
         }
-
-        .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .hero p {
-            font-size: 1.1rem;
-            font-weight: 300;
-            margin-bottom: 30px;
-            max-width: 600px;
-        }
-
+        .hero h1 { font-size: 3rem; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .hero p { font-size: 1.1rem; font-weight: 300; margin-bottom: 30px; max-width: 600px; }
         .btn {
-            display: inline-block;
-            padding: 14px 30px;
-            background-color: var(--gold);
-            color: var(--white);
-            text-decoration: none;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-            border: none;
-            cursor: pointer;
+            display: inline-block; padding: 14px 30px; background-color: var(--gold);
+            color: var(--white); text-decoration: none; text-transform: uppercase;
+            letter-spacing: 1px; font-size: 0.9rem; border: none; cursor: pointer;
             transition: var(--transition);
         }
+        .btn:hover { background-color: #B8962E; transform: translateY(-2px); }
 
-        .btn:hover {
-            background-color: #B8962E;
-            transform: translateY(-2px);
-        }
+        section { padding: 80px 5%; }
+        .section-title { text-align: center; font-size: 2.2rem; margin-bottom: 10px; }
+        .section-subtitle { text-align: center; color: var(--gray); margin-bottom: 50px; font-weight: 300; font-size: 0.95rem; }
 
-        /* --- SECCIONES --- */
-        section {
-            padding: 80px 5%;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-        }
-
-        .section-subtitle {
-            text-align: center;
-            color: var(--gray);
-            margin-bottom: 50px;
-            font-weight: 300;
-            font-size: 0.95rem;
-        }
-
-        /* --- CATALOGO --- */
         .catalog-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 30px;
         }
-
         .product-card {
-            background: var(--light);
-            border-radius: 8px;
-            overflow: hidden;
-            transition: var(--transition);
-            text-align: center;
-            padding-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            background: var(--light); border-radius: 8px; overflow: hidden;
+            transition: var(--transition); text-align: center; padding-bottom: 20px;
+            display: flex; flex-direction: column; justify-content: space-between;
         }
+        .product-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.08); transform: translateY(-5px); }
+        .product-card img { width: 100%; height: 350px; object-fit: cover; margin-bottom: 15px; }
+        .product-card h3 { font-size: 1.4rem; margin-bottom: 5px; }
+        .product-card p { font-size: 0.9rem; color: var(--gray); margin-bottom: 10px; }
+        .product-card .price { font-size: 1.2rem; font-weight: 600; color: var(--gold); margin-top: auto; }
 
-        .product-card:hover {
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            transform: translateY(-5px);
-        }
-
-        .product-card img {
-            width: 100%;
-            height: 350px;
-            object-fit: cover;
-            margin-bottom: 15px;
-        }
-
-        .product-card h3 {
-            font-size: 1.4rem;
-            margin-bottom: 5px;
-        }
-
-        .product-card p {
-            font-size: 0.9rem;
-            color: var(--gray);
-            margin-bottom: 10px;
-        }
-
-        .product-card .price {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--gold);
-            margin-top: auto;
-        }
-
-        /* --- PERSONALIZADOR --- */
-        .customizer {
-            background-color: var(--light);
-            text-align: center;
-        }
-
+        .customizer { background-color: var(--light); text-align: center; }
         .customizer-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 40px;
-            max-width: 900px;
-            margin: 0 auto;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 40px; max-width: 1000px; margin: 0 auto;
         }
-
         @media (min-width: 768px) {
-            .customizer-container {
-                flex-direction: row;
-                justify-content: center;
-            }
+            .customizer-container { flex-direction: row; justify-content: center; align-items: flex-start; }
         }
 
-        .bag-preview {
-            width: 300px;
-            height: 300px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .canvas-wrapper {
+            width: 100%; max-width: 420px; min-height: 420px;
+            display: flex; justify-content: center; align-items: center;
+            background: var(--white); border-radius: 12px; padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
         }
-
-        .bag-preview svg {
-            width: 100%;
-            height: 100%;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+        #bag-canvas {
+            max-width: 100%; max-height: 420px;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.08));
+            transition: opacity 0.3s ease;
         }
+        #bag-canvas.loading { opacity: 0.3; }
 
-        .customizer-controls {
-            text-align: left;
-            max-width: 350px;
-        }
-
-        .customizer-controls label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 500;
-        }
-
+        .customizer-controls { text-align: left; max-width: 350px; width: 100%; }
+        .customizer-controls label { display: block; margin-bottom: 10px; font-weight: 500; }
         .customizer-controls select {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1rem;
+            width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd;
+            border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 1rem;
+            background: var(--white);
         }
-
         .color-picker-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
+            display: flex; align-items: center; gap: 15px; margin-bottom: 20px;
         }
-
         .color-picker-wrapper input[type="color"] {
-            -webkit-appearance: none;
-            border: none;
-            width: 60px;
-            height: 60px;
-            cursor: pointer;
-            border-radius: 50%;
-            padding: 0;
-            background: none;
+            -webkit-appearance: none; border: none; width: 60px; height: 60px;
+            cursor: pointer; border-radius: 50%; padding: 0; background: none;
         }
-
-        .color-picker-wrapper input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
-        }
-
+        .color-picker-wrapper input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         .color-picker-wrapper input[type="color"]::-webkit-color-swatch {
-            border: 3px solid var(--white);
-            border-radius: 50%;
+            border: 3px solid var(--white); border-radius: 50%;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-
-        .color-name {
-            font-size: 1rem;
-            font-weight: 500;
-        }
-
+        .color-name { font-size: 1rem; font-weight: 500; }
         .price-display {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--gold);
-            margin-bottom: 20px;
-            display: block;
+            font-size: 1.1rem; font-weight: 600; color: var(--gold);
+            margin-bottom: 20px; display: block;
         }
+        .color-presets {
+            display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;
+        }
+        .color-preset {
+            width: 32px; height: 32px; border-radius: 50%;
+            border: 2px solid var(--white); cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: transform 0.2s ease;
+        }
+        .color-preset:hover { transform: scale(1.15); }
 
-        /* --- FOOTER --- */
-        footer {
-            background-color: var(--dark);
-            color: var(--white);
-            text-align: center;
-            padding: 40px 5%;
-        }
-
-        footer .logo {
-            color: var(--white);
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-
-        .social-links a {
-            color: var(--white);
-            font-size: 1.5rem;
-            margin: 0 10px;
-            transition: var(--transition);
-        }
-
-        .social-links a:hover {
-            color: var(--gold);
-        }
-
-        footer p {
-            font-size: 0.8rem;
-            color: #888;
-            margin-top: 20px;
-        }
+        footer { background-color: var(--dark); color: var(--white); text-align: center; padding: 40px 5%; }
+        footer .logo { color: var(--white); display: inline-block; margin-bottom: 20px; }
+        .social-links a { color: var(--white); font-size: 1.5rem; margin: 0 10px; transition: var(--transition); }
+        .social-links a:hover { color: var(--gold); }
+        footer p { font-size: 0.8rem; color: #888; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <!-- HEADER -->
     <header>
         <div class="logo">Sahar</div>
         <nav class="nav-links">
@@ -336,48 +146,40 @@
         </nav>
     </header>
 
-    <!-- HERO -->
     <div class="hero">
         <h1>Elegancia Tejida a Mano</h1>
         <p>Piezas únicas con detalles exclusivos. Diseña la tuya y hazla inolvidable.</p>
         <a href="#personalizar" class="btn">Diseña tu Cartera</a>
     </div>
 
-    <!-- CATALOGO -->
     <section id="catalogo">
         <h2 class="section-title">Nuestros Modelos</h2>
         <p class="section-subtitle">Cada pieza es tejida a mano con dedicación y los mejores materiales.</p>
-        
         <div class="catalog-grid">
-            <!-- Modelo Alba -->
             <div class="product-card">
                 <img src="imagenes/modelos/ModeloAlba.jpeg" alt="Modelo Alba">
                 <h3>Modelo Alba</h3>
                 <p>Elegancia clásica con borla y herraje dorado.</p>
                 <p class="price">$34.000</p>
             </div>
-            <!-- Modelo Aurora -->
             <div class="product-card">
                 <img src="imagenes/modelos/ModeloAurora.jpeg" alt="Modelo Aurora">
                 <h3>Modelo Aurora</h3>
                 <p>Diseño sofisticado con detalles únicos.</p>
                 <p class="price">$45.000</p>
             </div>
-            <!-- Modelo Rocío -->
             <div class="product-card">
                 <img src="imagenes/modelos/ModeloRocio.jpeg" alt="Modelo Rocío">
                 <h3>Modelo Rocío</h3>
                 <p>Perlas y estilo para un look inolvidable.</p>
                 <p class="price">$32.000</p>
             </div>
-            <!-- Modelo Bruma -->
             <div class="product-card">
                 <img src="imagenes/modelos/ModeloBruma.jpeg" alt="Mochila Bruma">
                 <h3>Mochila Bruma</h3>
                 <p>Práctica y elegante para el día a día.</p>
                 <p class="price">$35.000</p>
             </div>
-            <!-- Modelo Lumina -->
             <div class="product-card">
                 <img src="imagenes/modelos/ModeloLumina.jpeg" alt="Modelo Lumina">
                 <h3>Modelo Lumina</h3>
@@ -387,43 +189,40 @@
         </div>
     </section>
 
-    <!-- PERSONALIZADOR -->
     <section id="personalizar" class="customizer">
         <h2 class="section-title">Diseña tu Sahar</h2>
-        <p class="section-subtitle">Elige el modelo y el color exacto que deseas. Tejeremos una pieza única para ti.</p>
+        <p class="section-subtitle">Elige el modelo y el color exacto. Verás una previsualización realista de tu cartera.</p>
         
         <div class="customizer-container">
-            <div class="bag-preview">
-                <!-- SVG Genérico de Cartera -->
-                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Asa -->
-                    <path d="M 60 80 C 60 30, 140 30, 140 80" fill="none" stroke="#D4AF37" stroke-width="6" stroke-linecap="round"/>
-                    <!-- Cuerpo -->
-                    <rect x="40" y="80" width="120" height="90" rx="15" fill="currentColor" id="bag-body"/>
-                    <!-- Solapa -->
-                    <path d="M 40 100 Q 100 120 160 100 L 160 80 L 40 80 Z" fill="currentColor" opacity="0.8" id="bag-flap"/>
-                    <!-- Cierre -->
-                    <rect x="90" y="95" width="20" height="15" rx="3" fill="#D4AF37"/>
-                    <!-- Borla -->
-                    <path d="M 150 110 L 150 150" stroke="currentColor" stroke-width="4" stroke-linecap="round" id="bag-tassel"/>
-                    <circle cx="150" cy="110" r="5" fill="#D4AF37"/>
-                </svg>
+            <div class="canvas-wrapper">
+                <canvas id="bag-canvas" class="loading"></canvas>
             </div>
             
             <div class="customizer-controls">
-                <label for="model-select">Selecciona el Modelo:</label>
+                <label for="model-select">1. Selecciona el Modelo:</label>
                 <select id="model-select">
-                    <option value="Alba" data-price="34000">Modelo Alba - $34.000</option>
-                    <option value="Aurora" data-price="45000">Modelo Aurora - $45.000</option>
-                    <option value="Rocío" data-price="32000">Modelo Rocío - $32.000</option>
-                    <option value="Bruma" data-price="35000">Mochila Bruma - $35.000</option>
-                    <option value="Lumina" data-price="40000">Modelo Lumina - $40.000</option>
+                    <option value="Alba" data-price="34000" data-img="imagenes/modelos/ModeloAlba.jpeg">Modelo Alba - $34.000</option>
+                    <option value="Aurora" data-price="45000" data-img="imagenes/modelos/ModeloAurora.jpeg">Modelo Aurora - $45.000</option>
+                    <option value="Rocío" data-price="32000" data-img="imagenes/modelos/ModeloRocio.jpeg">Modelo Rocío - $32.000</option>
+                    <option value="Bruma" data-price="35000" data-img="imagenes/modelos/ModeloBruma.jpeg">Mochila Bruma - $35.000</option>
+                    <option value="Lumina" data-price="40000" data-img="imagenes/modelos/ModeloLumina.jpeg">Modelo Lumina - $40.000</option>
                 </select>
 
-                <label for="color-picker">Elige tu Color Favorito:</label>
+                <label for="color-picker">2. Elige tu Color Favorito:</label>
                 <div class="color-picker-wrapper">
                     <input type="color" id="color-picker" value="#D4AF37">
                     <span class="color-name" id="color-hex">#D4AF37</span>
+                </div>
+
+                <div class="color-presets">
+                    <div class="color-preset" style="background:#FFFFFF" data-color="#FFFFFF" title="Blanco"></div>
+                    <div class="color-preset" style="background:#F4C2C2" data-color="#F4C2C2" title="Rosa Palo"></div>
+                    <div class="color-preset" style="background:#E5A9B8" data-color="#E5A9B8" title="Rosa Antiguo"></div>
+                    <div class="color-preset" style="background:#8B1E3F" data-color="#8B1E3F" title="Burgundy"></div>
+                    <div class="color-preset" style="background:#1A1A1A" data-color="#1A1A1A" title="Negro"></div>
+                    <div class="color-preset" style="background:#A8C5D6" data-color="#A8C5D6" title="Azul Cielo"></div>
+                    <div class="color-preset" style="background:#B8A07A" data-color="#B8A07A" title="Beige"></div>
+                    <div class="color-preset" style="background:#4A5D4E" data-color="#4A5D4E" title="Verde Bosque"></div>
                 </div>
 
                 <span class="price-display" id="selected-price">Precio base: $34.000</span>
@@ -433,7 +232,6 @@
         </div>
     </section>
 
-    <!-- FOOTER -->
     <footer id="contacto">
         <div class="logo">Sahar</div>
         <p style="margin-bottom: 20px; font-weight: 300;">Piezas tejidas a mano con detalles únicos.</p>
@@ -444,54 +242,162 @@
         <p>&copy; 2026 Sahar. Todos los derechos reservados.</p>
     </footer>
 
-    <!-- JAVASCRIPT -->
     <script>
-        const colorPicker = document.getElementById('color-picker');
-        const bagBody = document.getElementById('bag-body');
-        const bagFlap = document.getElementById('bag-flap');
-        const bagTassel = document.getElementById('bag-tassel');
-        const colorHex = document.getElementById('color-hex');
+        const canvas = document.getElementById('bag-canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const modelSelect = document.getElementById('model-select');
+        const colorPicker = document.getElementById('color-picker');
+        const colorHex = document.getElementById('color-hex');
         const priceDisplay = document.getElementById('selected-price');
 
-        // Actualizar el color de la cartera en vivo
-        colorPicker.addEventListener('input', function() {
-            const selectedColor = this.value;
-            bagBody.style.color = selectedColor;
-            bagFlap.style.color = selectedColor;
-            bagTassel.style.stroke = selectedColor;
-            colorHex.textContent = selectedColor.toUpperCase();
+        let originalImageData = null;
+
+        // --- Utilidades de conversión de color ---
+        function hexToRgb(hex) {
+            hex = hex.replace('#', '');
+            if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+            return [parseInt(hex.substr(0,2),16), parseInt(hex.substr(2,2),16), parseInt(hex.substr(4,2),16)];
+        }
+
+        function rgbToHsl(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+            if (max === min) { h = s = 0; }
+            else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                    case g: h = ((b - r) / d + 2) / 6; break;
+                    case b: h = ((r - g) / d + 4) / 6; break;
+                }
+            }
+            return [h, s, l];
+        }
+
+        function hslToRgb(h, s, l) {
+            let r, g, b;
+            if (s === 0) { r = g = b = l; }
+            else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        }
+
+        // --- Cargar imagen en el canvas ---
+        function loadBagImage(src) {
+            canvas.classList.add('loading');
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const MAX = 500;
+                const scale = Math.min(MAX / img.naturalWidth, MAX / img.naturalHeight, 1);
+                canvas.width = Math.round(img.naturalWidth * scale);
+                canvas.height = Math.round(img.naturalHeight * scale);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                try {
+                    originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    applyColor();
+                } catch (e) {
+                    console.error('Error leyendo la imagen:', e);
+                }
+                canvas.classList.remove('loading');
+            };
+            img.onerror = () => {
+                console.error('No se pudo cargar la imagen:', src);
+                canvas.classList.remove('loading');
+            };
+            img.src = src;
+        }
+
+        // --- Recolorear píxeles ---
+        function applyColor() {
+            if (!originalImageData) return;
+
+            const [tr, tg, tb] = hexToRgb(colorPicker.value);
+            const [targetH, targetS, targetL] = rgbToHsl(tr, tg, tb);
+
+            const src = originalImageData.data;
+            const out = new Uint8ClampedArray(src.length);
+
+            for (let i = 0; i < src.length; i += 4) {
+                const r = src[i], g = src[i+1], b = src[i+2], a = src[i+3];
+                const [h, s, l] = rgbToHsl(r, g, b);
+
+                // Reglas de exclusión:
+                // 1. Fondo blanco/crema o grises claros (poca saturación + mucha luz)
+                // 2. Herrajes dorados: hue entre 30° y 70° con saturación alta
+                const isBackground = (s < 0.10);
+                const isGold = (h >= 30/360 && h <= 70/360 && s > 0.25);
+
+                if (isBackground || isGold) {
+                    out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
+                    continue;
+                }
+
+                // Recolorear: nuevo matiz + saturación del objetivo,
+                // pero conservar luminosidad original para mantener sombras/textura
+                const newS = Math.max(s * 0.4, targetS * 0.9); // mezcla la saturación
+                const newL = l; // conserva luz original
+                const [nr, ng, nb] = hslToRgb(targetH, newS, newL);
+                out[i] = nr; out[i+1] = ng; out[i+2] = nb; out[i+3] = a;
+            }
+
+            ctx.putImageData(new ImageData(out, canvas.width, canvas.height), 0, 0);
+        }
+
+        // --- Eventos ---
+        modelSelect.addEventListener('change', () => {
+            const opt = modelSelect.options[modelSelect.selectedIndex];
+            const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
+            priceDisplay.textContent = `Precio base: $${price}`;
+            loadBagImage(opt.getAttribute('data-img'));
         });
 
-        // Actualizar el precio base según el modelo seleccionado
-        function updatePrice() {
-            const selectedOption = modelSelect.options[modelSelect.selectedIndex];
-            const price = selectedOption.getAttribute('data-price');
-            // Formatear el precio con puntos de miles (ej. 34.000)
-            const formattedPrice = parseInt(price).toLocaleString('es-CL');
-            priceDisplay.textContent = `Precio base: $${formattedPrice}`;
-        }
+        colorPicker.addEventListener('input', () => {
+            colorHex.textContent = colorPicker.value.toUpperCase();
+            applyColor();
+        });
 
-        modelSelect.addEventListener('change', updatePrice);
-        updatePrice(); // Inicializar al cargar la página
+        // Presets de color
+        document.querySelectorAll('.color-preset').forEach(el => {
+            el.addEventListener('click', () => {
+                const c = el.getAttribute('data-color');
+                colorPicker.value = c;
+                colorHex.textContent = c.toUpperCase();
+                applyColor();
+            });
+        });
 
-        // Función para enviar el pedido a WhatsApp
+        // --- WhatsApp ---
         function enviarWhatsApp() {
             const modelo = modelSelect.value;
-            const color = colorPicker.value;
-            const colorName = colorHex.textContent;
-            const selectedOption = modelSelect.options[modelSelect.selectedIndex];
-            const price = selectedOption.getAttribute('data-price');
-            const formattedPrice = parseInt(price).toLocaleString('es-CL');
-            
-            // Número de WhatsApp actualizado (sin +, sin espacios)
-            const telefono = "56968433508"; 
-            
-            const mensaje = `Hola Sahar! 👋 Me encantaría cotizar una cartera personalizada.%0A%0A📌 *Modelo:* ${modelo}%0A🎨 *Color elegido:* ${colorName}%0A💰 *Precio base:* $${formattedPrice}%0A%0A¿Me pueden ayudar con el valor final y tiempo de confección?`;
-            
-            const url = `https://wa.me/${telefono}?text=${mensaje}`;
-            window.open(url, '_blank');
+            const opt = modelSelect.options[modelSelect.selectedIndex];
+            const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
+            const color = colorHex.textContent;
+            const telefono = "56968433508";
+            const mensaje = `Hola Sahar! 👋 Me encantaría cotizar una cartera personalizada.%0A%0A📌 *Modelo:* ${modelo}%0A🎨 *Color elegido:* ${color}%0A💰 *Precio base:* $${price}%0A%0A¿Me pueden ayudar con el valor final y tiempo de confección?`;
+            window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
         }
+
+        // --- Inicializar ---
+        const firstOpt = modelSelect.options[0];
+        priceDisplay.textContent = `Precio base: $${parseInt(firstOpt.getAttribute('data-price')).toLocaleString('es-CL')}`;
+        loadBagImage(firstOpt.getAttribute('data-img'));
     </script>
 </body>
 </html>
