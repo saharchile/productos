@@ -252,7 +252,6 @@
 
         let originalImageData = null;
 
-        // --- Utilidades de conversión de color ---
         function hexToRgb(hex) {
             hex = hex.replace('#', '');
             if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
@@ -297,7 +296,6 @@
             return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
         }
 
-        // --- Cargar imagen en el canvas ---
         function loadBagImage(src) {
             canvas.classList.add('loading');
             const img = new Image();
@@ -324,12 +322,11 @@
             img.src = src;
         }
 
-        // --- Recolorear píxeles ---
         function applyColor() {
             if (!originalImageData) return;
 
             const [tr, tg, tb] = hexToRgb(colorPicker.value);
-            const [targetH, targetS, targetL] = rgbToHsl(tr, tg, tb);
+            const [targetH, targetS] = rgbToHsl(tr, tg, tb);
 
             const src = originalImageData.data;
             const out = new Uint8ClampedArray(src.length);
@@ -338,9 +335,6 @@
                 const r = src[i], g = src[i+1], b = src[i+2], a = src[i+3];
                 const [h, s, l] = rgbToHsl(r, g, b);
 
-                // Reglas de exclusión:
-                // 1. Fondo blanco/crema o grises claros (poca saturación + mucha luz)
-                // 2. Herrajes dorados: hue entre 30° y 70° con saturación alta
                 const isBackground = (s < 0.10);
                 const isGold = (h >= 30/360 && h <= 70/360 && s > 0.25);
 
@@ -349,18 +343,14 @@
                     continue;
                 }
 
-                // Recolorear: nuevo matiz + saturación del objetivo,
-                // pero conservar luminosidad original para mantener sombras/textura
-                const newS = Math.max(s * 0.4, targetS * 0.9); // mezcla la saturación
-                const newL = l; // conserva luz original
-                const [nr, ng, nb] = hslToRgb(targetH, newS, newL);
+                const newS = Math.max(s * 0.4, targetS * 0.9);
+                const [nr, ng, nb] = hslToRgb(targetH, newS, l);
                 out[i] = nr; out[i+1] = ng; out[i+2] = nb; out[i+3] = a;
             }
 
             ctx.putImageData(new ImageData(out, canvas.width, canvas.height), 0, 0);
         }
 
-        // --- Eventos ---
         modelSelect.addEventListener('change', () => {
             const opt = modelSelect.options[modelSelect.selectedIndex];
             const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
@@ -373,7 +363,6 @@
             applyColor();
         });
 
-        // Presets de color
         document.querySelectorAll('.color-preset').forEach(el => {
             el.addEventListener('click', () => {
                 const c = el.getAttribute('data-color');
@@ -383,7 +372,6 @@
             });
         });
 
-        // --- WhatsApp ---
         function enviarWhatsApp() {
             const modelo = modelSelect.value;
             const opt = modelSelect.options[modelSelect.selectedIndex];
@@ -394,7 +382,6 @@
             window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
         }
 
-        // --- Inicializar ---
         const firstOpt = modelSelect.options[0];
         priceDisplay.textContent = `Precio base: $${parseInt(firstOpt.getAttribute('data-price')).toLocaleString('es-CL')}`;
         loadBagImage(firstOpt.getAttribute('data-img'));
