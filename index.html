@@ -63,7 +63,7 @@
         }
 
         .nav-links {
-            display: none; /* Oculto en móvil por simplicidad */
+            display: none;
         }
 
         .nav-links a {
@@ -89,7 +89,7 @@
             align-items: center;
             text-align: center;
             padding: 0 5%;
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1591561954557-26941169b49e?q=80&w=1000&auto=format&fit=crop') center/cover;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('productos/imagenes/modelos/ModeloAurora.jpeg') center/cover;
             color: var(--white);
         }
 
@@ -158,6 +158,9 @@
             transition: var(--transition);
             text-align: center;
             padding-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .product-card:hover {
@@ -180,7 +183,14 @@
         .product-card p {
             font-size: 0.9rem;
             color: var(--gray);
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+        }
+
+        .product-card .price {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--gold);
+            margin-top: auto;
         }
 
         /* --- PERSONALIZADOR --- */
@@ -273,6 +283,14 @@
             font-weight: 500;
         }
 
+        .price-display {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--gold);
+            margin-bottom: 20px;
+            display: block;
+        }
+
         /* --- FOOTER --- */
         footer {
             background-color: var(--dark);
@@ -332,33 +350,38 @@
         <div class="catalog-grid">
             <!-- Modelo Alba -->
             <div class="product-card">
-                <img src="https://i.ibb.co/3kYJjC6/alba.jpg" alt="Modelo Alba">
+                <img src="productos/imagenes/modelos/ModeloAlba.jpeg" alt="Modelo Alba">
                 <h3>Modelo Alba</h3>
                 <p>Elegancia clásica con borla y herraje dorado.</p>
+                <p class="price">$34.000</p>
             </div>
             <!-- Modelo Aurora -->
             <div class="product-card">
-                <img src="https://i.ibb.co/6PZqYq3/aurora.jpg" alt="Modelo Aurora">
+                <img src="productos/imagenes/modelos/ModeloAurora.jpeg" alt="Modelo Aurora">
                 <h3>Modelo Aurora</h3>
                 <p>Diseño sofisticado con detalles únicos.</p>
+                <p class="price">$45.000</p>
             </div>
             <!-- Modelo Rocío -->
             <div class="product-card">
-                <img src="https://i.ibb.co/3zYqYq3/rocio.jpg" alt="Modelo Rocío">
+                <img src="productos/imagenes/modelos/ModeloRocio.jpeg" alt="Modelo Rocío">
                 <h3>Modelo Rocío</h3>
                 <p>Perlas y estilo para un look inolvidable.</p>
+                <p class="price">$32.000</p>
             </div>
             <!-- Modelo Bruma -->
             <div class="product-card">
-                <img src="https://i.ibb.co/3zYqYq3/bruma.jpg" alt="Mochila Bruma">
+                <img src="productos/imagenes/modelos/ModeloBruma.jpeg" alt="Mochila Bruma">
                 <h3>Mochila Bruma</h3>
                 <p>Práctica y elegante para el día a día.</p>
+                <p class="price">$35.000</p>
             </div>
             <!-- Modelo Lumina -->
             <div class="product-card">
-                <img src="https://i.ibb.co/3zYqYq3/lumina.jpg" alt="Modelo Lumina">
+                <img src="productos/imagenes/modelos/ModeloLumina.jpeg" alt="Modelo Lumina">
                 <h3>Modelo Lumina</h3>
                 <p>Contraste perfecto con cadena de lujo.</p>
+                <p class="price">$40.000</p>
             </div>
         </div>
     </section>
@@ -389,11 +412,11 @@
             <div class="customizer-controls">
                 <label for="model-select">Selecciona el Modelo:</label>
                 <select id="model-select">
-                    <option value="Alba">Modelo Alba</option>
-                    <option value="Aurora">Modelo Aurora</option>
-                    <option value="Rocío">Modelo Rocío</option>
-                    <option value="Bruma">Mochila Bruma</option>
-                    <option value="Lumina">Modelo Lumina</option>
+                    <option value="Alba" data-price="34000">Modelo Alba - $34.000</option>
+                    <option value="Aurora" data-price="45000">Modelo Aurora - $45.000</option>
+                    <option value="Rocío" data-price="32000">Modelo Rocío - $32.000</option>
+                    <option value="Bruma" data-price="35000">Mochila Bruma - $35.000</option>
+                    <option value="Lumina" data-price="40000">Modelo Lumina - $40.000</option>
                 </select>
 
                 <label for="color-picker">Elige tu Color Favorito:</label>
@@ -401,6 +424,8 @@
                     <input type="color" id="color-picker" value="#D4AF37">
                     <span class="color-name" id="color-hex">#D4AF37</span>
                 </div>
+
+                <span class="price-display" id="selected-price">Precio base: $34.000</span>
 
                 <button class="btn" style="width: 100%;" onclick="enviarWhatsApp()">Cotizar por WhatsApp</button>
             </div>
@@ -426,6 +451,7 @@
         const bagTassel = document.getElementById('bag-tassel');
         const colorHex = document.getElementById('color-hex');
         const modelSelect = document.getElementById('model-select');
+        const priceDisplay = document.getElementById('selected-price');
 
         // Actualizar el color de la cartera en vivo
         colorPicker.addEventListener('input', function() {
@@ -436,16 +462,31 @@
             colorHex.textContent = selectedColor.toUpperCase();
         });
 
+        // Actualizar el precio base según el modelo seleccionado
+        function updatePrice() {
+            const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+            const price = selectedOption.getAttribute('data-price');
+            // Formatear el precio con puntos de miles (ej. 34.000)
+            const formattedPrice = parseInt(price).toLocaleString('es-CL');
+            priceDisplay.textContent = `Precio base: $${formattedPrice}`;
+        }
+
+        modelSelect.addEventListener('change', updatePrice);
+        updatePrice(); // Inicializar al cargar la página
+
         // Función para enviar el pedido a WhatsApp
         function enviarWhatsApp() {
             const modelo = modelSelect.value;
             const color = colorPicker.value;
             const colorName = colorHex.textContent;
+            const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+            const price = selectedOption.getAttribute('data-price');
+            const formattedPrice = parseInt(price).toLocaleString('es-CL');
             
             // Reemplaza el número con tu número de WhatsApp real (formato internacional sin +)
             const telefono = "56912345678"; 
             
-            const mensaje = `Hola Sahar! 👋 Me encantaría cotizar una cartera personalizada.%0A%0A📌 *Modelo:* ${modelo}%0A🎨 *Color elegido:* ${colorName}%0A%0A¿Me pueden ayudar con el valor y tiempo de confección?`;
+            const mensaje = `Hola Sahar! 👋 Me encantaría cotizar una cartera personalizada.%0A%0A📌 *Modelo:* ${modelo}%0A🎨 *Color elegido:* ${colorName}%0A💰 *Precio base:* $${formattedPrice}%0A%0A¿Me pueden ayudar con el valor final y tiempo de confección?`;
             
             const url = `https://wa.me/${telefono}?text=${mensaje}`;
             window.open(url, '_blank');
