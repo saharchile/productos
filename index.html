@@ -126,77 +126,117 @@
         .product-card .description { font-size: 0.88rem; color: var(--gray); margin-bottom: 15px; padding: 0 20px; }
         .product-card .price { font-size: 1.25rem; font-weight: 600; color: var(--gold); margin-top: auto; }
 
-        .customizer { background: var(--light); }
+        /* ========== PERSONALIZADOR ========== */
+        .customizer {
+            background: linear-gradient(135deg, #F9F9F9 0%, #F0EBE2 100%);
+        }
         .customizer-container {
             display: flex; flex-direction: column; align-items: center;
-            gap: 50px; max-width: 1050px; margin: 0 auto;
+            gap: 40px; max-width: 1100px; margin: 0 auto;
         }
-        @media (min-width: 768px) {
-            .customizer-container { flex-direction: row; justify-content: center; align-items: flex-start; }
+        @media (min-width: 900px) {
+            .customizer-container {
+                flex-direction: row; justify-content: center;
+                align-items: center; gap: 70px;
+                max-width: 1200px;
+            }
         }
+
         .canvas-wrapper {
-            width: 100%; max-width: 440px; min-height: 440px;
+            width: 100%; max-width: 460px;
             display: flex; justify-content: center; align-items: center;
-            background: var(--white); border-radius: 12px; padding: 20px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.07);
+            background: var(--white); border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.10);
+            position: relative;
+            min-height: 460px;
         }
-        #bag-canvas { max-width: 100%; max-height: 440px; transition: opacity 0.3s ease; }
+        .canvas-wrapper::before {
+            content: ''; position: absolute; inset: 8px;
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-radius: 12px; pointer-events: none;
+        }
+        #bag-canvas {
+            max-width: 100%; max-height: 480px;
+            transition: opacity 0.3s ease;
+            display: block;
+        }
         #bag-canvas.loading { opacity: 0.3; }
 
-        .customizer-controls { text-align: left; max-width: 380px; width: 100%; }
+        @media (min-width: 900px) {
+            .canvas-wrapper { max-width: 560px; min-height: 560px; padding: 30px; }
+            #bag-canvas { max-height: 540px; }
+        }
+
+        .customizer-controls { text-align: left; max-width: 400px; width: 100%; }
+        @media (min-width: 900px) {
+            .customizer-controls { max-width: 440px; }
+        }
+
         .customizer-controls label {
             display: block; margin-bottom: 10px;
             font-weight: 500; font-size: 0.95rem;
+            color: var(--dark);
         }
         .customizer-controls select {
-            width: 100%; padding: 13px; margin-bottom: 22px;
-            border: 1px solid #ddd; border-radius: 4px;
+            width: 100%; padding: 14px; margin-bottom: 26px;
+            border: 1px solid #E5E5E5; border-radius: 8px;
             font-family: 'Montserrat', sans-serif; font-size: 1rem;
             background: var(--white); cursor: pointer;
+            transition: var(--transition);
         }
-        .color-picker-wrapper { display: flex; align-items: center; gap: 15px; margin-bottom: 18px; }
+        .customizer-controls select:focus {
+            outline: none; border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+        }
+
+        .color-picker-wrapper {
+            display: flex; align-items: center; gap: 15px; margin-bottom: 20px;
+        }
         .color-picker-wrapper input[type="color"] {
             -webkit-appearance: none; border: none;
-            width: 60px; height: 60px; cursor: pointer;
+            width: 64px; height: 64px; cursor: pointer;
             border-radius: 50%; padding: 0; background: none;
         }
         .color-picker-wrapper input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         .color-picker-wrapper input[type="color"]::-webkit-color-swatch {
             border: 3px solid var(--white); border-radius: 50%;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.15);
         }
-        .color-name { font-size: 0.95rem; font-weight: 500; font-family: monospace; color: var(--gray); }
-        .color-presets { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+        .color-name {
+            font-size: 0.95rem; font-weight: 500;
+            font-family: monospace; color: var(--gray);
+        }
+        .color-presets {
+            display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 26px;
+        }
         .color-preset {
-            width: 34px; height: 34px; border-radius: 50%;
+            width: 36px; height: 36px; border-radius: 50%;
             border: 2px solid var(--white); cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
             transition: transform 0.2s ease;
         }
         .color-preset:hover { transform: scale(1.18); }
 
         .price-display {
-            font-size: 1.1rem; font-weight: 600; color: var(--gold);
+            font-size: 1.2rem; font-weight: 600; color: var(--gold);
             margin-bottom: 22px; display: block;
+            font-family: 'Playfair Display', serif;
         }
         .note-info {
             font-size: 0.82rem; color: var(--gray);
             margin-bottom: 20px; padding: 12px 15px;
             background: var(--white); border-left: 3px solid var(--gold);
-            border-radius: 4px;
+            border-radius: 6px;
         }
 
         footer {
             background: var(--dark); color: var(--white);
             text-align: center; padding: 55px 5% 35px;
         }
-        /* Fix del logo: invertimos colores y usamos screen para que el fondo blanco se vuelva transparente */
         .footer-logo {
-            height: 55px;
-            margin: 0 auto 20px;
-            filter: invert(1);
-            mix-blend-mode: screen;
-            display: block;
+            height: 55px; margin: 0 auto 20px;
+            filter: invert(1); mix-blend-mode: screen; display: block;
         }
         footer p { font-size: 0.9rem; color: #aaa; margin-bottom: 25px; }
         .social-links { margin-bottom: 30px; }
@@ -397,7 +437,7 @@
         const priceDisplay = document.getElementById('selected-price');
 
         let originalImageData = null;
-        let backgroundMask = null; // 1 = fondo protegido
+        let bagColorHsl = null; // Matiz del color base de la cartera
 
         // --- Conversión de color ---
         function hexToRgb(hex) {
@@ -442,75 +482,59 @@
             return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
         }
 
-        // --- Reglas de preservación automática ---
-        // Devuelve true si el píxel NO debe pintarse (herrajes, logo, perlas, etc.)
-        function shouldPreservePixel(r, g, b) {
-            const [h, s, l] = rgbToHsl(r, g, b);
-
-            // 1. Muy oscuro: etiqueta SAHAR, herrajes negros, cadenas oscuras
-            if (l < 0.22) return true;
-
-            // 2. Muy desaturado: fondo blanco/gris, perlas, plateados, herrajes cromados
-            if (s < 0.10) return true;
-
-            // 3. Oscuro y poco saturado: textos negros, sombras profundas
-            if (l < 0.32 && s < 0.25) return true;
-
-            // 4. Dorado / bronce / cobre metálico (con reflejos y brillos)
-            if (h >= 20/360 && h <= 80/360 && s > 0.18 && l > 0.32 && l < 0.92) return true;
-
-            return false;
-        }
-
-        // --- Flood fill para detectar el fondo conectado a los bordes ---
-        function floodFillBackground(startX, startY, tolerance) {
+        // --- Muestrear el color de la cartera desde el centro ---
+        function sampleBagColor() {
             const w = canvas.width, h = canvas.height;
             const data = originalImageData.data;
-            const startIdx = (startY * w + startX) * 4;
-            const sr = data[startIdx], sg = data[startIdx+1], sb = data[startIdx+2];
-
-            const visited = new Uint8Array(w * h);
-            const queue = [startY * w + startX];
-            visited[startY * w + startX] = 1;
-
-            let head = 0;
-            while (head < queue.length) {
-                const pos = queue[head++];
-                backgroundMask[pos] = 1;
-
-                const x = pos % w;
-                const y = (pos - x) / w;
-                const neighbors = [
-                    x > 0     ? pos - 1 : -1,
-                    x < w - 1 ? pos + 1 : -1,
-                    y > 0     ? pos - w : -1,
-                    y < h - 1 ? pos + w : -1
-                ];
-
-                for (const np of neighbors) {
-                    if (np < 0 || visited[np]) continue;
-                    const idx = np * 4;
-                    const dr = data[idx] - sr;
-                    const dg = data[idx+1] - sg;
-                    const db = data[idx+2] - sb;
-                    const dist = Math.sqrt(dr*dr + dg*dg + db*db);
-                    if (dist < tolerance) {
-                        visited[np] = 1;
-                        queue.push(np);
+            
+            // Múltiples puntos de muestreo en la zona central de la cartera
+            const points = [
+                [w * 0.50, h * 0.55],
+                [w * 0.42, h * 0.55],
+                [w * 0.58, h * 0.55],
+                [w * 0.50, h * 0.62],
+                [w * 0.45, h * 0.48],
+                [w * 0.55, h * 0.48]
+            ];
+            
+            const samples = [];
+            const radius = 6;
+            
+            for (const [px, py] of points) {
+                for (let dy = -radius; dy <= radius; dy++) {
+                    for (let dx = -radius; dx <= radius; dx++) {
+                        const x = Math.round(px + dx);
+                        const y = Math.round(py + dy);
+                        if (x < 0 || x >= w || y < 0 || y >= h) continue;
+                        const idx = (y * w + x) * 4;
+                        const r = data[idx], g = data[idx+1], b = data[idx+2];
+                        const [hh, ss, ll] = rgbToHsl(r, g, b);
+                        // Solo incluir píxeles con saturación y luz razonables (evita fondo y sombras extremas)
+                        if (ss > 0.20 && ll > 0.25 && ll < 0.85) {
+                            samples.push([hh, ss, ll]);
+                        }
                     }
                 }
             }
-        }
-
-        function detectBackground() {
-            const w = canvas.width, h = canvas.height;
-            const tol = 32;
-            const corners = [[0,0], [w-1,0], [0,h-1], [w-1,h-1]];
-            corners.forEach(([x, y]) => {
-                if (x < 0 || x >= w || y < 0 || y >= h) return;
-                if (backgroundMask[y * w + x]) return;
-                floodFillBackground(x, y, tol);
-            });
+            
+            if (samples.length < 10) {
+                console.warn('Pocas muestras de color de cartera');
+                return null;
+            }
+            
+            // Promediar el matiz circularmente (evitando saltos 0/1)
+            let sumSin = 0, sumCos = 0, sumS = 0, sumL = 0;
+            for (const [hh, ss, ll] of samples) {
+                sumSin += Math.sin(hh * Math.PI * 2);
+                sumCos += Math.cos(hh * Math.PI * 2);
+                sumS += ss;
+                sumL += ll;
+            }
+            const n = samples.length;
+            let avgH = Math.atan2(sumSin / n, sumCos / n) / (Math.PI * 2);
+            if (avgH < 0) avgH += 1;
+            
+            return [avgH, sumS / n, sumL / n];
         }
 
         // --- Cargar imagen ---
@@ -519,7 +543,7 @@
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => {
-                const MAX = 500;
+                const MAX = 700;
                 const scale = Math.min(MAX / img.naturalWidth, MAX / img.naturalHeight, 1);
                 canvas.width = Math.round(img.naturalWidth * scale);
                 canvas.height = Math.round(img.naturalHeight * scale);
@@ -527,8 +551,8 @@
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 try {
                     originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    backgroundMask = new Uint8Array(canvas.width * canvas.height);
-                    detectBackground();
+                    bagColorHsl = sampleBagColor();
+                    console.log('Color base cartera (HSL):', bagColorHsl);
                     applyColor();
                 } catch (e) {
                     console.error('Error leyendo la imagen:', e);
@@ -542,9 +566,37 @@
             img.src = src;
         }
 
+        // --- Decidir si un píxel pertenece a la cartera (debe recolorearse) ---
+        function isBagPixel(r, g, b) {
+            const [h, s, l] = rgbToHsl(r, g, b);
+            
+            // 1. Muy oscuro → logo SAHAR, herrajes negros, sombras profundas
+            if (l < 0.18) return false;
+            
+            // 2. Muy claro + muy desaturado → fondo blanco, perlas, brillos extremos
+            if (l > 0.90 && s < 0.12) return false;
+            
+            // 3. Muy desaturado → fondo gris, plateados, blancos
+            if (s < 0.10) return false;
+            
+            // 4. Dorado / bronce (herrajes metálicos)
+            if (h >= 25/360 && h <= 80/360 && s > 0.20 && l > 0.30) return false;
+            
+            // 5. Debe coincidir con el matiz del color base de la cartera
+            if (bagColorHsl) {
+                const bagH = bagColorHsl[0];
+                let hueDiff = Math.abs(h - bagH);
+                hueDiff = Math.min(hueDiff, 1 - hueDiff);
+                // Tolerancia de matiz: 0.13 (~47°)
+                if (hueDiff > 0.13) return false;
+            }
+            
+            return true;
+        }
+
         // --- Recolorear píxeles ---
         function applyColor() {
-            if (!originalImageData || !backgroundMask) return;
+            if (!originalImageData) return;
 
             const [tr, tg, tb] = hexToRgb(colorPicker.value);
             const [targetH, targetS, targetL] = rgbToHsl(tr, tg, tb);
@@ -552,35 +604,31 @@
             const src = originalImageData.data;
             const out = new Uint8ClampedArray(src.length);
             const w = canvas.width;
+            
+            // Ratio de luminosidad: cuánto oscurecer/aclarar según el color objetivo
+            const baseL = bagColorHsl ? bagColorHsl[1] : 0.65;
+            const lRatio = targetL / Math.max(baseL, 0.15);
 
             for (let i = 0; i < src.length; i += 4) {
-                const px = (i / 4) % w;
-                const py = Math.floor((i / 4) / w);
                 const r = src[i], g = src[i+1], b = src[i+2], a = src[i+3];
 
-                // 1) Protección de fondo detectado
-                if (backgroundMask[py * w + px]) {
+                if (!isBagPixel(r, g, b)) {
+                    // Preservar píxel original
                     out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
                     continue;
                 }
 
-                // 2) Protección automática (herrajes, logo, perlas)
-                if (shouldPreservePixel(r, g, b)) {
-                    out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
-                    continue;
-                }
-
-                // 3) Recolorear
+                // Recolorear
                 const [h, s, l] = rgbToHsl(r, g, b);
-
-                // Saturación: prioriza la del color objetivo, mantiene un poco de textura
+                
+                // Saturación objetivo, mezclada con algo de la original para preservar textura
                 const newS = Math.min(1, targetS * 0.85 + s * 0.15);
-
-                // Luminosidad: desplaza hacia el brillo del color objetivo conservando la textura
-                // lShift va de -0.30 (colores oscuros) a +0.27 (colores claros)
-                const lShift = (targetL - 0.5) * 0.6;
-                const newL = Math.max(0.05, Math.min(0.95, l + lShift));
-
+                
+                // Luminosidad: desplazar según el color objetivo
+                let newL = l * lRatio;
+                // Clamp razonable
+                newL = Math.max(0.08, Math.min(0.94, newL));
+                
                 const [nr, ng, nb] = hslToRgb(targetH, newS, newL);
                 out[i] = nr; out[i+1] = ng; out[i+2] = nb; out[i+3] = a;
             }
@@ -620,6 +668,7 @@
             window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
         }
 
+        // --- Inicializar ---
         const firstOpt = modelSelect.options[0];
         priceDisplay.textContent = `Precio base: $${parseInt(firstOpt.getAttribute('data-price')).toLocaleString('es-CL')}`;
         loadBagImage(firstOpt.getAttribute('data-img'));
