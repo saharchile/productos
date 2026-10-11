@@ -74,9 +74,7 @@
             font-family: 'Montserrat', sans-serif;
         }
         .btn:hover { background-color: #B8962E; transform: translateY(-2px); }
-        .btn-outline {
-            background: transparent; border: 1.5px solid var(--white);
-        }
+        .btn-outline { background: transparent; border: 1.5px solid var(--white); }
         .btn-outline:hover { background: var(--white); color: var(--dark); }
 
         section { padding: 90px 5%; }
@@ -178,7 +176,6 @@
         }
         .color-preset:hover { transform: scale(1.18); }
 
-        /* SHIELD MODE */
         .shield-controls { display: flex; gap: 10px; margin-bottom: 8px; }
         .shield-btn {
             flex: 1; padding: 11px 15px;
@@ -191,9 +188,7 @@
             gap: 8px;
         }
         .shield-btn:hover { border-color: var(--gold); color: var(--gold); }
-        .shield-btn.active {
-            background: var(--gold); color: var(--white); border-color: var(--gold);
-        }
+        .shield-btn.active { background: var(--gold); color: var(--white); border-color: var(--gold); }
         .shield-clear { flex: 0 0 auto; }
         .shield-hint {
             font-size: 0.78rem; color: var(--gold);
@@ -380,14 +375,14 @@
 
                 <div class="shield-controls">
                     <button type="button" id="shield-toggle" class="shield-btn">
-                        <i class="fas fa-shield-alt"></i> Proteger accesorios
+                        <i class="fas fa-shield-alt"></i> Proteger zonas
                     </button>
                     <button type="button" id="shield-clear" class="shield-btn shield-clear" style="display:none;">
                         <i class="fas fa-times"></i> Limpiar
                     </button>
                 </div>
                 <p class="shield-hint" id="shield-hint" style="display:none;">
-                    👆 Haz clic sobre el broche, etiqueta o accesorio que NO quieres que se pinte.
+                    👆 Haz clic sobre el fondo, broche o accesorio que NO quieres que se pinte. La zona se rellenará automáticamente.
                 </p>
 
                 <div class="note-info">
@@ -431,8 +426,8 @@
         const shieldHint = document.getElementById('shield-hint');
 
         let originalImageData = null;
+        let shieldMask = null;        // Uint8Array(w*h) → 1 = protegido
         let shieldMode = false;
-        let shieldPoints = []; // { x, y, r, g, b }
 
         // --- Conversión de color ---
         function hexToRgb(hex) {
@@ -440,7 +435,6 @@
             if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
             return [parseInt(hex.substr(0,2),16), parseInt(hex.substr(2,2),16), parseInt(hex.substr(4,2),16)];
         }
-
         function rgbToHsl(r, g, b) {
             r /= 255; g /= 255; b /= 255;
             const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -457,7 +451,6 @@
             }
             return [h, s, l];
         }
-
         function hslToRgb(h, s, l) {
             let r, g, b;
             if (s === 0) { r = g = b = l; }
@@ -479,21 +472,66 @@
             return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
         }
 
-        // --- Detección automática de zonas a preservar ---
+        // --- Detección automática de zonas a preservar (sin flood fill) ---
         function shouldPreserveAuto(r, g, b) {
             const [h, s, l] = rgbToHsl(r, g, b);
-
-            // 1. Muy oscuro: herrajes negros, tiras negras
-            if (l < 0.10) return true;
-
-            // 2. Muy desaturado: fondo gris/blanco, plateado, herrajes cromados
-            if (s < 0.10) return true;
-
-            // 3. Dorado / bronce / cobre metálico
-            //    Rango de hue amplio, saturación desde 0.15 (los metálicos reflectantes tienen baja sat)
-            if (h >= 20/360 && h <= 75/360 && s > 0.15 && l > 0.30 && l < 0.90) return true;
-
+            if (l < 0.10) return true;                        // herrajes negros
+            if (s < 0.10) return true;                        // fondo gris/blanco, plateados
+            if (h >= 20/360 && h <= 75/360 && s > 0.15 && l > 0.30 && l < 0.90) return true; // dorados
             return false;
+        }
+
+        // --- Flood fill sobre el canvas para proteger una zona ---
+        function floodFillShield(startX, startY, tolerance) {
+            const w = canvas.width, h = canvas.height;
+            const data = originalImageData.data;
+            const startIdx = (startY * w + startX) * 4;
+            const sr = data[startIdx], sg = data[startIdx+1], sb = data[startIdx+2];
+
+            const visited = new Uint8Array(w * h);
+            const queue = [startY * w + startX];
+            visited[startY * w + startX] = 1;
+
+            let head = 0;
+            while (head < queue.length) {
+                const pos = queue[head++];
+                shieldMask[pos] = 1;
+
+                const x = pos % w;
+                const y = (pos - x) / w;
+
+                const neighbors = [
+                    x > 0     ? pos - 1 : -1,
+                    x < w - 1 ? pos + 1 : -1,
+                    y > 0     ? pos - w : -1,
+                    y < h - 1 ? pos + w : -1
+                ];
+
+                for (const np of neighbors) {
+                    if (np < 0 || visited[np]) continue;
+                    const idx = np * 4;
+                    const dr = data[idx] - sr;
+                    const dg = data[idx+1] - sg;
+                    const db = data[idx+2] - sb;
+                    const dist = Math.sqrt(dr*dr + dg*dg + db*db);
+                    if (dist < tolerance) {
+                        visited[np] = 1;
+                        queue.push(np);
+                    }
+                }
+            }
+        }
+
+        // --- Detección automática del fondo desde las 4 esquinas ---
+        function autoDetectBackground() {
+            const w = canvas.width, h = canvas.height;
+            const tol = 32;
+            const corners = [[0,0], [w-1,0], [0,h-1], [w-1,h-1]];
+            corners.forEach(([x, y]) => {
+                if (x < 0 || x >= w || y < 0 || y >= h) return;
+                if (shieldMask[y * w + x]) return; // ya protegido
+                floodFillShield(x, y, tol);
+            });
         }
 
         // --- Cargar imagen ---
@@ -510,6 +548,8 @@
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 try {
                     originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    shieldMask = new Uint8Array(canvas.width * canvas.height);
+                    autoDetectBackground();
                     applyColor();
                 } catch (e) {
                     console.error('Error leyendo la imagen:', e);
@@ -525,63 +565,59 @@
 
         // --- Recolorear píxeles ---
         function applyColor() {
-            if (!originalImageData) return;
+            if (!originalImageData || !shieldMask) return;
 
             const [tr, tg, tb] = hexToRgb(colorPicker.value);
             const [targetH, targetS] = rgbToHsl(tr, tg, tb);
 
             const src = originalImageData.data;
             const out = new Uint8ClampedArray(src.length);
-
-            const shieldRadius = canvas.width * 0.06;
-            const shieldTolerance = 55;
+            const w = canvas.width;
 
             for (let i = 0; i < src.length; i += 4) {
+                const px = (i / 4) % w;
+                const py = Math.floor((i / 4) / w);
                 const r = src[i], g = src[i+1], b = src[i+2], a = src[i+3];
-                const px = (i / 4) % canvas.width;
-                const py = Math.floor((i / 4) / canvas.width);
 
-                // 1) Verificar puntos protegidos manualmente
-                let shielded = false;
-                for (const p of shieldPoints) {
-                    const dx = px - p.x, dy = py - p.y;
-                    if (dx*dx + dy*dy < shieldRadius * shieldRadius) { shielded = true; break; }
-                    const dist = Math.sqrt((r-p.r)**2 + (g-p.g)**2 + (b-p.b)**2);
-                    if (dist < shieldTolerance) { shielded = true; break; }
-                }
-                if (shielded) {
+                // 1) Protección por máscara (fondo + clics manuales)
+                if (shieldMask[py * w + px]) {
                     out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
                     continue;
                 }
 
-                // 2) Detección automática (herrajes, fondo, plateados, dorados)
+                // 2) Detección automática de herrajes / plateados / negros
                 if (shouldPreserveAuto(r, g, b)) {
                     out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
                     continue;
                 }
 
-                // 3) Recolorear: nuevo hue + saturación objetivo, manteniendo luminosidad original
+                // 3) Recolorear manteniendo luminosidad
                 const [h, s, l] = rgbToHsl(r, g, b);
                 const newS = Math.max(s * 0.4, targetS * 0.9);
                 const [nr, ng, nb] = hslToRgb(targetH, newS, l);
                 out[i] = nr; out[i+1] = ng; out[i+2] = nb; out[i+3] = a;
             }
 
-            ctx.putImageData(new ImageData(out, canvas.width, canvas.height), 0, 0);
+            ctx.putImageData(new ImageData(out, w, canvas.height), 0, 0);
 
-            // Dibujar indicadores de zonas protegidas
-            if (shieldPoints.length > 0) {
-                ctx.save();
-                shieldPoints.forEach(p => {
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, shieldRadius * 0.7, 0, Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(212, 175, 55, 0.95)';
-                    ctx.lineWidth = 2;
-                    ctx.setLineDash([6, 4]);
-                    ctx.stroke();
-                });
-                ctx.restore();
+            // Si el modo escudo está activo, superponer un tinte dorado translúcido
+            if (shieldMode) {
+                drawShieldOverlay();
             }
+        }
+
+        function drawShieldOverlay() {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const d = imgData.data;
+            for (let i = 0; i < shieldMask.length; i++) {
+                if (shieldMask[i]) {
+                    const idx = i * 4;
+                    d[idx]     = Math.round(d[idx]     * 0.55 + 212 * 0.45);
+                    d[idx + 1] = Math.round(d[idx + 1] * 0.55 + 175 * 0.45);
+                    d[idx + 2] = Math.round(d[idx + 2] * 0.55 + 55  * 0.45);
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
         }
 
         // --- Modo escudo ---
@@ -590,67 +626,44 @@
                 shieldToggle.classList.add('active');
                 shieldToggle.innerHTML = '<i class="fas fa-shield-alt"></i> Modo activo';
                 shieldHint.style.display = 'block';
+                canvas.style.cursor = 'crosshair';
             } else {
                 shieldToggle.classList.remove('active');
-                shieldToggle.innerHTML = '<i class="fas fa-shield-alt"></i> Proteger accesorios';
+                shieldToggle.innerHTML = '<i class="fas fa-shield-alt"></i> Proteger zonas';
                 shieldHint.style.display = 'none';
+                canvas.style.cursor = 'default';
             }
-            shieldClear.style.display = shieldPoints.length > 0 ? 'inline-flex' : 'none';
-            canvas.style.cursor = shieldMode ? 'crosshair' : 'default';
+            shieldClear.style.display = shieldMask && shieldMask.some(v => v) ? 'inline-flex' : 'none';
         }
 
         shieldToggle.addEventListener('click', () => {
             shieldMode = !shieldMode;
             updateShieldUI();
+            applyColor();
         });
 
         shieldClear.addEventListener('click', () => {
-            shieldPoints = [];
+            if (!shieldMask) return;
+            shieldMask = new Uint8Array(canvas.width * canvas.height);
             updateShieldUI();
             applyColor();
         });
 
         canvas.addEventListener('click', (e) => {
-            if (!shieldMode || !originalImageData) return;
-
+            if (!shieldMode || !originalImageData || !shieldMask) return;
             const rect = canvas.getBoundingClientRect();
             const x = Math.round((e.clientX - rect.left) * canvas.width / rect.width);
             const y = Math.round((e.clientY - rect.top) * canvas.height / rect.height);
-
             if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) return;
-
-            // Promediar el color alrededor del clic (muestra 7x7)
-            const sample = 3;
-            let rs = 0, gs = 0, bs = 0, count = 0;
-            const data = originalImageData.data;
-            for (let dy = -sample; dy <= sample; dy++) {
-                for (let dx = -sample; dx <= sample; dx++) {
-                    const px = x + dx, py = y + dy;
-                    if (px < 0 || px >= canvas.width || py < 0 || py >= canvas.height) continue;
-                    const idx = (py * canvas.width + px) * 4;
-                    rs += data[idx]; gs += data[idx+1]; bs += data[idx+2];
-                    count++;
-                }
-            }
-
-            shieldPoints.push({
-                x, y,
-                r: Math.round(rs / count),
-                g: Math.round(gs / count),
-                b: Math.round(bs / count)
-            });
-
+            floodFillShield(x, y, 42);
             updateShieldUI();
             applyColor();
         });
 
         // --- Eventos generales ---
         modelSelect.addEventListener('change', () => {
-            // Limpiar protecciones al cambiar de modelo (las coordenadas son relativas a la imagen)
-            shieldPoints = [];
             shieldMode = false;
             updateShieldUI();
-
             const opt = modelSelect.options[modelSelect.selectedIndex];
             const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
             priceDisplay.textContent = `Precio base: $${price}`;
@@ -671,7 +684,6 @@
             });
         });
 
-        // --- WhatsApp ---
         function enviarWhatsApp() {
             const modelo = modelSelect.value;
             const opt = modelSelect.options[modelSelect.selectedIndex];
@@ -682,7 +694,6 @@
             window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
         }
 
-        // --- Inicializar ---
         const firstOpt = modelSelect.options[0];
         priceDisplay.textContent = `Precio base: $${parseInt(firstOpt.getAttribute('data-price')).toLocaleString('es-CL')}`;
         loadBagImage(firstOpt.getAttribute('data-img'));
