@@ -375,11 +375,11 @@
             <div class="customizer-controls">
                 <label for="model-select">1. Selecciona el modelo:</label>
                 <select id="model-select">
-                    <option value="Alba" data-price="34000" data-img="imagenes/modelos/creatusahar/ModeloAlbaFrontal.jpeg">Modelo Alba — $34.000</option>
-                    <option value="Aurora" data-price="45000" data-img="imagenes/modelos/creatusahar/ModeloAuroraFrontal.jpeg">Modelo Aurora — $45.000</option>
-                    <option value="Rocío" data-price="32000" data-img="imagenes/modelos/creatusahar/ModeloRocioFrontal.jpeg">Modelo Rocío — $32.000</option>
-                    <option value="Bruma" data-price="35000" data-img="imagenes/modelos/creatusahar/ModeloBrumaFrontal.jpeg">Mochila Bruma — $35.000</option>
-                    <option value="Lumina" data-price="40000" data-img="imagenes/modelos/creatusahar/ModeloLuminaFrontal.jpeg">Modelo Lumina — $40.000</option>
+                    <option value="Alba" data-price="34000" data-img="imagenes/modelos/creatusahar/ModeloAlbaFrontal.png">Modelo Alba — $34.000</option>
+                    <option value="Aurora" data-price="45000" data-img="imagenes/modelos/creatusahar/ModeloAuroraFrontal.png">Modelo Aurora — $45.000</option>
+                    <option value="Rocío" data-price="32000" data-img="imagenes/modelos/creatusahar/ModeloRocioFrontal.png">Modelo Rocío — $32.000</option>
+                    <option value="Bruma" data-price="35000" data-img="imagenes/modelos/creatusahar/ModeloBrumaFrontal.png">Mochila Bruma — $35.000</option>
+                    <option value="Lumina" data-price="40000" data-img="imagenes/modelos/creatusahar/ModeloLuminaFrontal.png">Modelo Lumina — $40.000</option>
                 </select>
 
                 <label for="color-picker">2. Elige tu color favorito:</label>
@@ -437,9 +437,7 @@
         const priceDisplay = document.getElementById('selected-price');
 
         let originalImageData = null;
-        let bagColorHsl = null; // Matiz del color base de la cartera
 
-        // --- Conversión de color ---
         function hexToRgb(hex) {
             hex = hex.replace('#', '');
             if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
@@ -482,62 +480,22 @@
             return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
         }
 
-        // --- Muestrear el color de la cartera desde el centro ---
-        function sampleBagColor() {
-            const w = canvas.width, h = canvas.height;
-            const data = originalImageData.data;
-            
-            // Múltiples puntos de muestreo en la zona central de la cartera
-            const points = [
-                [w * 0.50, h * 0.55],
-                [w * 0.42, h * 0.55],
-                [w * 0.58, h * 0.55],
-                [w * 0.50, h * 0.62],
-                [w * 0.45, h * 0.48],
-                [w * 0.55, h * 0.48]
-            ];
-            
-            const samples = [];
-            const radius = 6;
-            
-            for (const [px, py] of points) {
-                for (let dy = -radius; dy <= radius; dy++) {
-                    for (let dx = -radius; dx <= radius; dx++) {
-                        const x = Math.round(px + dx);
-                        const y = Math.round(py + dy);
-                        if (x < 0 || x >= w || y < 0 || y >= h) continue;
-                        const idx = (y * w + x) * 4;
-                        const r = data[idx], g = data[idx+1], b = data[idx+2];
-                        const [hh, ss, ll] = rgbToHsl(r, g, b);
-                        // Solo incluir píxeles con saturación y luz razonables (evita fondo y sombras extremas)
-                        if (ss > 0.20 && ll > 0.25 && ll < 0.85) {
-                            samples.push([hh, ss, ll]);
-                        }
-                    }
-                }
-            }
-            
-            if (samples.length < 10) {
-                console.warn('Pocas muestras de color de cartera');
-                return null;
-            }
-            
-            // Promediar el matiz circularmente (evitando saltos 0/1)
-            let sumSin = 0, sumCos = 0, sumS = 0, sumL = 0;
-            for (const [hh, ss, ll] of samples) {
-                sumSin += Math.sin(hh * Math.PI * 2);
-                sumCos += Math.cos(hh * Math.PI * 2);
-                sumS += ss;
-                sumL += ll;
-            }
-            const n = samples.length;
-            let avgH = Math.atan2(sumSin / n, sumCos / n) / (Math.PI * 2);
-            if (avgH < 0) avgH += 1;
-            
-            return [avgH, sumS / n, sumL / n];
+        // --- ¿Es este píxel un accesorio que hay que preservar? ---
+        function shouldPreserve(r, g, b) {
+            const [h, s, l] = rgbToHsl(r, g, b);
+
+            // 1. Oscuro → logo SAHAR, herrajes negros, sombras profundas
+            if (l < 0.20) return true;
+
+            // 2. Muy desaturado → blanco, perlas, plateados, herrajes cromados
+            if (s < 0.14) return true;
+
+            // 3. Dorado / bronce / cobre
+            if (h >= 25/360 && h <= 80/360 && s > 0.20 && l > 0.30 && l < 0.92) return true;
+
+            return false;
         }
 
-        // --- Cargar imagen ---
         function loadBagImage(src) {
             canvas.classList.add('loading');
             const img = new Image();
@@ -551,8 +509,6 @@
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 try {
                     originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    bagColorHsl = sampleBagColor();
-                    console.log('Color base cartera (HSL):', bagColorHsl);
                     applyColor();
                 } catch (e) {
                     console.error('Error leyendo la imagen:', e);
@@ -566,35 +522,6 @@
             img.src = src;
         }
 
-        // --- Decidir si un píxel pertenece a la cartera (debe recolorearse) ---
-        function isBagPixel(r, g, b) {
-            const [h, s, l] = rgbToHsl(r, g, b);
-            
-            // 1. Muy oscuro → logo SAHAR, herrajes negros, sombras profundas
-            if (l < 0.18) return false;
-            
-            // 2. Muy claro + muy desaturado → fondo blanco, perlas, brillos extremos
-            if (l > 0.90 && s < 0.12) return false;
-            
-            // 3. Muy desaturado → fondo gris, plateados, blancos
-            if (s < 0.10) return false;
-            
-            // 4. Dorado / bronce (herrajes metálicos)
-            if (h >= 25/360 && h <= 80/360 && s > 0.20 && l > 0.30) return false;
-            
-            // 5. Debe coincidir con el matiz del color base de la cartera
-            if (bagColorHsl) {
-                const bagH = bagColorHsl[0];
-                let hueDiff = Math.abs(h - bagH);
-                hueDiff = Math.min(hueDiff, 1 - hueDiff);
-                // Tolerancia de matiz: 0.13 (~47°)
-                if (hueDiff > 0.13) return false;
-            }
-            
-            return true;
-        }
-
-        // --- Recolorear píxeles ---
         function applyColor() {
             if (!originalImageData) return;
 
@@ -603,40 +530,37 @@
 
             const src = originalImageData.data;
             const out = new Uint8ClampedArray(src.length);
-            const w = canvas.width;
-            
-            // Ratio de luminosidad: cuánto oscurecer/aclarar según el color objetivo
-            const baseL = bagColorHsl ? bagColorHsl[1] : 0.65;
-            const lRatio = targetL / Math.max(baseL, 0.15);
 
             for (let i = 0; i < src.length; i += 4) {
                 const r = src[i], g = src[i+1], b = src[i+2], a = src[i+3];
 
-                if (!isBagPixel(r, g, b)) {
-                    // Preservar píxel original
+                // 1. Transparente → preservar transparencia
+                if (a < 10) {
                     out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
                     continue;
                 }
 
-                // Recolorear
+                // 2. Accesorio → preservar color original
+                if (shouldPreserve(r, g, b)) {
+                    out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
+                    continue;
+                }
+
+                // 3. Es trapillo → recolorear
                 const [h, s, l] = rgbToHsl(r, g, b);
-                
-                // Saturación objetivo, mezclada con algo de la original para preservar textura
-                const newS = Math.min(1, targetS * 0.85 + s * 0.15);
-                
-                // Luminosidad: desplazar según el color objetivo
-                let newL = l * lRatio;
-                // Clamp razonable
-                newL = Math.max(0.08, Math.min(0.94, newL));
-                
+                const newS = Math.min(1, targetS * 0.9 + s * 0.1);
+
+                // Ajuste de luminosidad según el color objetivo
+                const lShift = (targetL - 0.5) * 0.5;
+                const newL = Math.max(0.05, Math.min(0.95, l + lShift));
+
                 const [nr, ng, nb] = hslToRgb(targetH, newS, newL);
                 out[i] = nr; out[i+1] = ng; out[i+2] = nb; out[i+3] = a;
             }
 
-            ctx.putImageData(new ImageData(out, w, canvas.height), 0, 0);
+            ctx.putImageData(new ImageData(out, canvas.width, canvas.height), 0, 0);
         }
 
-        // --- Eventos ---
         modelSelect.addEventListener('change', () => {
             const opt = modelSelect.options[modelSelect.selectedIndex];
             const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
@@ -668,7 +592,6 @@
             window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
         }
 
-        // --- Inicializar ---
         const firstOpt = modelSelect.options[0];
         priceDisplay.textContent = `Precio base: $${parseInt(firstOpt.getAttribute('data-price')).toLocaleString('es-CL')}`;
         loadBagImage(firstOpt.getAttribute('data-img'));
