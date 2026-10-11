@@ -126,117 +126,77 @@
         .product-card .description { font-size: 0.88rem; color: var(--gray); margin-bottom: 15px; padding: 0 20px; }
         .product-card .price { font-size: 1.25rem; font-weight: 600; color: var(--gold); margin-top: auto; }
 
-        /* ========== PERSONALIZADOR ========== */
-        .customizer {
-            background: linear-gradient(135deg, #F9F9F9 0%, #F0EBE2 100%);
-        }
+        .customizer { background: var(--light); }
         .customizer-container {
             display: flex; flex-direction: column; align-items: center;
-            gap: 40px; max-width: 1100px; margin: 0 auto;
+            gap: 50px; max-width: 1050px; margin: 0 auto;
         }
-        @media (min-width: 900px) {
-            .customizer-container {
-                flex-direction: row; justify-content: center;
-                align-items: center; gap: 70px;
-                max-width: 1200px;
-            }
+        @media (min-width: 768px) {
+            .customizer-container { flex-direction: row; justify-content: center; align-items: flex-start; }
         }
-
         .canvas-wrapper {
-            width: 100%; max-width: 460px;
+            width: 100%; max-width: 440px; min-height: 440px;
             display: flex; justify-content: center; align-items: center;
-            background: var(--white); border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.10);
-            position: relative;
-            min-height: 460px;
+            background: var(--white); border-radius: 12px; padding: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.07);
         }
-        .canvas-wrapper::before {
-            content: ''; position: absolute; inset: 8px;
-            border: 1px solid rgba(212, 175, 55, 0.25);
-            border-radius: 12px; pointer-events: none;
-        }
-        #bag-canvas {
-            max-width: 100%; max-height: 480px;
-            transition: opacity 0.3s ease;
-            display: block;
-        }
+        #bag-canvas { max-width: 100%; max-height: 440px; transition: opacity 0.3s ease; }
         #bag-canvas.loading { opacity: 0.3; }
 
-        @media (min-width: 900px) {
-            .canvas-wrapper { max-width: 560px; min-height: 560px; padding: 30px; }
-            #bag-canvas { max-height: 540px; }
-        }
-
-        .customizer-controls { text-align: left; max-width: 400px; width: 100%; }
-        @media (min-width: 900px) {
-            .customizer-controls { max-width: 440px; }
-        }
-
+        .customizer-controls { text-align: left; max-width: 380px; width: 100%; }
         .customizer-controls label {
             display: block; margin-bottom: 10px;
             font-weight: 500; font-size: 0.95rem;
-            color: var(--dark);
         }
         .customizer-controls select {
-            width: 100%; padding: 14px; margin-bottom: 26px;
-            border: 1px solid #E5E5E5; border-radius: 8px;
+            width: 100%; padding: 13px; margin-bottom: 22px;
+            border: 1px solid #ddd; border-radius: 4px;
             font-family: 'Montserrat', sans-serif; font-size: 1rem;
             background: var(--white); cursor: pointer;
-            transition: var(--transition);
         }
-        .customizer-controls select:focus {
-            outline: none; border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
-        }
-
-        .color-picker-wrapper {
-            display: flex; align-items: center; gap: 15px; margin-bottom: 20px;
-        }
+        .color-picker-wrapper { display: flex; align-items: center; gap: 15px; margin-bottom: 18px; }
         .color-picker-wrapper input[type="color"] {
             -webkit-appearance: none; border: none;
-            width: 64px; height: 64px; cursor: pointer;
+            width: 60px; height: 60px; cursor: pointer;
             border-radius: 50%; padding: 0; background: none;
         }
         .color-picker-wrapper input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         .color-picker-wrapper input[type="color"]::-webkit-color-swatch {
             border: 3px solid var(--white); border-radius: 50%;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
         }
-        .color-name {
-            font-size: 0.95rem; font-weight: 500;
-            font-family: monospace; color: var(--gray);
-        }
-        .color-presets {
-            display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 26px;
-        }
+        .color-name { font-size: 0.95rem; font-weight: 500; font-family: monospace; color: var(--gray); }
+        .color-presets { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
         .color-preset {
-            width: 36px; height: 36px; border-radius: 50%;
+            width: 34px; height: 34px; border-radius: 50%;
             border: 2px solid var(--white); cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             transition: transform 0.2s ease;
         }
         .color-preset:hover { transform: scale(1.18); }
 
         .price-display {
-            font-size: 1.2rem; font-weight: 600; color: var(--gold);
+            font-size: 1.1rem; font-weight: 600; color: var(--gold);
             margin-bottom: 22px; display: block;
-            font-family: 'Playfair Display', serif;
         }
         .note-info {
             font-size: 0.82rem; color: var(--gray);
             margin-bottom: 20px; padding: 12px 15px;
             background: var(--white); border-left: 3px solid var(--gold);
-            border-radius: 6px;
+            border-radius: 4px;
         }
 
         footer {
             background: var(--dark); color: var(--white);
             text-align: center; padding: 55px 5% 35px;
         }
+        /* Fix del logo: invertimos colores y usamos screen para que el fondo blanco se vuelva transparente */
         .footer-logo {
-            height: 55px; margin: 0 auto 20px;
-            filter: invert(1); mix-blend-mode: screen; display: block;
+            height: 55px;
+            margin: 0 auto 20px;
+            filter: invert(1);
+            mix-blend-mode: screen;
+            display: block;
         }
         footer p { font-size: 0.9rem; color: #aaa; margin-bottom: 25px; }
         .social-links { margin-bottom: 30px; }
@@ -375,11 +335,11 @@
             <div class="customizer-controls">
                 <label for="model-select">1. Selecciona el modelo:</label>
                 <select id="model-select">
-                    <option value="Alba" data-price="34000" data-img="imagenes/modelos/creatusahar/ModeloAlbaFrontal.png">Modelo Alba — $34.000</option>
-                    <option value="Aurora" data-price="45000" data-img="imagenes/modelos/creatusahar/ModeloAuroraFrontal.png">Modelo Aurora — $45.000</option>
-                    <option value="Rocío" data-price="32000" data-img="imagenes/modelos/creatusahar/ModeloRocioFrontal.png">Modelo Rocío — $32.000</option>
-                    <option value="Bruma" data-price="35000" data-img="imagenes/modelos/creatusahar/ModeloBrumaFrontal.png">Mochila Bruma — $35.000</option>
-                    <option value="Lumina" data-price="40000" data-img="imagenes/modelos/creatusahar/ModeloLuminaFrontal.png">Modelo Lumina — $40.000</option>
+                    <option value="Alba" data-price="34000" data-img="imagenes/modelos/creatusahar/ModeloAlbaFrontal.jpeg">Modelo Alba — $34.000</option>
+                    <option value="Aurora" data-price="45000" data-img="imagenes/modelos/creatusahar/ModeloAuroraFrontal.jpeg">Modelo Aurora — $45.000</option>
+                    <option value="Rocío" data-price="32000" data-img="imagenes/modelos/creatusahar/ModeloRocioFrontal.jpeg">Modelo Rocío — $32.000</option>
+                    <option value="Bruma" data-price="35000" data-img="imagenes/modelos/creatusahar/ModeloBrumaFrontal.jpeg">Mochila Bruma — $35.000</option>
+                    <option value="Lumina" data-price="40000" data-img="imagenes/modelos/creatusahar/ModeloLuminaFrontal.jpeg">Modelo Lumina — $40.000</option>
                 </select>
 
                 <label for="color-picker">2. Elige tu color favorito:</label>
@@ -437,7 +397,9 @@
         const priceDisplay = document.getElementById('selected-price');
 
         let originalImageData = null;
+        let backgroundMask = null; // 1 = fondo protegido
 
+        // --- Conversión de color ---
         function hexToRgb(hex) {
             hex = hex.replace('#', '');
             if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
@@ -480,28 +442,84 @@
             return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
         }
 
-        // --- ¿Es este píxel un accesorio que hay que preservar? ---
-        function shouldPreserve(r, g, b) {
+        // --- Reglas de preservación automática ---
+        // Devuelve true si el píxel NO debe pintarse (herrajes, logo, perlas, etc.)
+        function shouldPreservePixel(r, g, b) {
             const [h, s, l] = rgbToHsl(r, g, b);
 
-            // 1. Oscuro → logo SAHAR, herrajes negros, sombras profundas
-            if (l < 0.20) return true;
+            // 1. Muy oscuro: etiqueta SAHAR, herrajes negros, cadenas oscuras
+            if (l < 0.22) return true;
 
-            // 2. Muy desaturado → blanco, perlas, plateados, herrajes cromados
-            if (s < 0.14) return true;
+            // 2. Muy desaturado: fondo blanco/gris, perlas, plateados, herrajes cromados
+            if (s < 0.10) return true;
 
-            // 3. Dorado / bronce / cobre
-            if (h >= 25/360 && h <= 80/360 && s > 0.20 && l > 0.30 && l < 0.92) return true;
+            // 3. Oscuro y poco saturado: textos negros, sombras profundas
+            if (l < 0.32 && s < 0.25) return true;
+
+            // 4. Dorado / bronce / cobre metálico (con reflejos y brillos)
+            if (h >= 20/360 && h <= 80/360 && s > 0.18 && l > 0.32 && l < 0.92) return true;
 
             return false;
         }
 
+        // --- Flood fill para detectar el fondo conectado a los bordes ---
+        function floodFillBackground(startX, startY, tolerance) {
+            const w = canvas.width, h = canvas.height;
+            const data = originalImageData.data;
+            const startIdx = (startY * w + startX) * 4;
+            const sr = data[startIdx], sg = data[startIdx+1], sb = data[startIdx+2];
+
+            const visited = new Uint8Array(w * h);
+            const queue = [startY * w + startX];
+            visited[startY * w + startX] = 1;
+
+            let head = 0;
+            while (head < queue.length) {
+                const pos = queue[head++];
+                backgroundMask[pos] = 1;
+
+                const x = pos % w;
+                const y = (pos - x) / w;
+                const neighbors = [
+                    x > 0     ? pos - 1 : -1,
+                    x < w - 1 ? pos + 1 : -1,
+                    y > 0     ? pos - w : -1,
+                    y < h - 1 ? pos + w : -1
+                ];
+
+                for (const np of neighbors) {
+                    if (np < 0 || visited[np]) continue;
+                    const idx = np * 4;
+                    const dr = data[idx] - sr;
+                    const dg = data[idx+1] - sg;
+                    const db = data[idx+2] - sb;
+                    const dist = Math.sqrt(dr*dr + dg*dg + db*db);
+                    if (dist < tolerance) {
+                        visited[np] = 1;
+                        queue.push(np);
+                    }
+                }
+            }
+        }
+
+        function detectBackground() {
+            const w = canvas.width, h = canvas.height;
+            const tol = 32;
+            const corners = [[0,0], [w-1,0], [0,h-1], [w-1,h-1]];
+            corners.forEach(([x, y]) => {
+                if (x < 0 || x >= w || y < 0 || y >= h) return;
+                if (backgroundMask[y * w + x]) return;
+                floodFillBackground(x, y, tol);
+            });
+        }
+
+        // --- Cargar imagen ---
         function loadBagImage(src) {
             canvas.classList.add('loading');
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => {
-                const MAX = 700;
+                const MAX = 500;
                 const scale = Math.min(MAX / img.naturalWidth, MAX / img.naturalHeight, 1);
                 canvas.width = Math.round(img.naturalWidth * scale);
                 canvas.height = Math.round(img.naturalHeight * scale);
@@ -509,6 +527,8 @@
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 try {
                     originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    backgroundMask = new Uint8Array(canvas.width * canvas.height);
+                    detectBackground();
                     applyColor();
                 } catch (e) {
                     console.error('Error leyendo la imagen:', e);
@@ -522,45 +542,53 @@
             img.src = src;
         }
 
+        // --- Recolorear píxeles ---
         function applyColor() {
-            if (!originalImageData) return;
+            if (!originalImageData || !backgroundMask) return;
 
             const [tr, tg, tb] = hexToRgb(colorPicker.value);
             const [targetH, targetS, targetL] = rgbToHsl(tr, tg, tb);
 
             const src = originalImageData.data;
             const out = new Uint8ClampedArray(src.length);
+            const w = canvas.width;
 
             for (let i = 0; i < src.length; i += 4) {
+                const px = (i / 4) % w;
+                const py = Math.floor((i / 4) / w);
                 const r = src[i], g = src[i+1], b = src[i+2], a = src[i+3];
 
-                // 1. Transparente → preservar transparencia
-                if (a < 10) {
+                // 1) Protección de fondo detectado
+                if (backgroundMask[py * w + px]) {
                     out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
                     continue;
                 }
 
-                // 2. Accesorio → preservar color original
-                if (shouldPreserve(r, g, b)) {
+                // 2) Protección automática (herrajes, logo, perlas)
+                if (shouldPreservePixel(r, g, b)) {
                     out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
                     continue;
                 }
 
-                // 3. Es trapillo → recolorear
+                // 3) Recolorear
                 const [h, s, l] = rgbToHsl(r, g, b);
-                const newS = Math.min(1, targetS * 0.9 + s * 0.1);
 
-                // Ajuste de luminosidad según el color objetivo
-                const lShift = (targetL - 0.5) * 0.5;
+                // Saturación: prioriza la del color objetivo, mantiene un poco de textura
+                const newS = Math.min(1, targetS * 0.85 + s * 0.15);
+
+                // Luminosidad: desplaza hacia el brillo del color objetivo conservando la textura
+                // lShift va de -0.30 (colores oscuros) a +0.27 (colores claros)
+                const lShift = (targetL - 0.5) * 0.6;
                 const newL = Math.max(0.05, Math.min(0.95, l + lShift));
 
                 const [nr, ng, nb] = hslToRgb(targetH, newS, newL);
                 out[i] = nr; out[i+1] = ng; out[i+2] = nb; out[i+3] = a;
             }
 
-            ctx.putImageData(new ImageData(out, canvas.width, canvas.height), 0, 0);
+            ctx.putImageData(new ImageData(out, w, canvas.height), 0, 0);
         }
 
+        // --- Eventos ---
         modelSelect.addEventListener('change', () => {
             const opt = modelSelect.options[modelSelect.selectedIndex];
             const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
