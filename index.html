@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sahar | Carteras Tejidas a Mano</title>
+    <meta name="description" content="Carteras tejidas a mano en trapillo. Piezas únicas y personalizadas. Envíos a todo Chile.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -16,182 +17,368 @@
             --light: #F9F9F9;
             --white: #FFFFFF;
             --gray: #666666;
+            --rose: #E5A9B8;
             --transition: all 0.3s ease;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body { font-family: 'Montserrat', sans-serif; color: var(--dark); background-color: var(--white); line-height: 1.6; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 400; }
+        img { max-width: 100%; display: block; }
 
+        /* --- HEADER --- */
         header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 5%; background: rgba(255, 255, 255, 0.95);
+            padding: 12px 5%; background: rgba(255, 255, 255, 0.98);
             position: sticky; top: 0; z-index: 100;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        .logo {
-            font-family: 'Playfair Display', serif; font-size: 1.8rem;
-            letter-spacing: 2px; color: var(--dark); text-transform: uppercase;
-            border-bottom: 2px solid var(--gold); padding-bottom: 2px;
+        .logo-img { height: 55px; width: auto; }
+        .header-cta {
+            background: var(--gold); color: var(--white);
+            padding: 10px 18px; text-decoration: none;
+            font-size: 0.85rem; letter-spacing: 1px;
+            text-transform: uppercase; border-radius: 4px;
+            transition: var(--transition);
+            display: inline-flex; align-items: center; gap: 8px;
         }
-        .nav-links { display: none; }
+        .header-cta:hover { background: #B8962E; }
 
+        /* --- BANNER ENVÍO --- */
+        .shipping-banner {
+            background: var(--dark); color: var(--white);
+            text-align: center; padding: 10px 5%;
+            font-size: 0.85rem; letter-spacing: 1px;
+        }
+        .shipping-banner i { color: var(--gold); margin-right: 8px; }
+
+        /* --- HERO --- */
         .hero {
-            height: 80vh; display: flex; flex-direction: column;
+            min-height: 85vh;
+            display: flex; flex-direction: column;
             justify-content: center; align-items: center; text-align: center;
-            padding: 0 5%;
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('imagenes/modelos/ModeloAurora.jpeg') center/cover;
+            padding: 80px 5%;
+            background: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), 
+                        url('imagenes/modelos/catalogo/ModeloAurora.jpeg') center/cover;
             color: var(--white);
         }
-        .hero h1 { font-size: 3rem; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        .hero p { font-size: 1.1rem; font-weight: 300; margin-bottom: 30px; max-width: 600px; }
+        .hero h1 { font-size: 3rem; margin-bottom: 15px; text-shadow: 2px 2px 8px rgba(0,0,0,0.5); line-height: 1.15; }
+        .hero p { font-size: 1.05rem; font-weight: 300; margin-bottom: 35px; max-width: 620px; }
+        .hero-buttons { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+
         .btn {
-            display: inline-block; padding: 14px 30px; background-color: var(--gold);
-            color: var(--white); text-decoration: none; text-transform: uppercase;
-            letter-spacing: 1px; font-size: 0.9rem; border: none; cursor: pointer;
+            display: inline-block; padding: 15px 32px;
+            background-color: var(--gold); color: var(--white);
+            text-decoration: none; text-transform: uppercase;
+            letter-spacing: 1.5px; font-size: 0.85rem;
+            border: none; cursor: pointer;
             transition: var(--transition);
+            border-radius: 4px;
+            font-family: 'Montserrat', sans-serif;
         }
         .btn:hover { background-color: #B8962E; transform: translateY(-2px); }
+        .btn-outline {
+            background: transparent; border: 1.5px solid var(--white);
+        }
+        .btn-outline:hover { background: var(--white); color: var(--dark); }
 
-        section { padding: 80px 5%; }
-        .section-title { text-align: center; font-size: 2.2rem; margin-bottom: 10px; }
-        .section-subtitle { text-align: center; color: var(--gray); margin-bottom: 50px; font-weight: 300; font-size: 0.95rem; }
+        /* --- SECCIONES --- */
+        section { padding: 90px 5%; }
+        .section-title { text-align: center; font-size: 2.4rem; margin-bottom: 15px; }
+        .section-subtitle { text-align: center; color: var(--gray); margin-bottom: 55px; font-weight: 300; font-size: 0.95rem; max-width: 620px; margin-left: auto; margin-right: auto; }
 
-        .catalog-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        /* --- HISTORIA --- */
+        .story { background: var(--light); }
+        .story-container {
+            max-width: 780px; margin: 0 auto; text-align: center;
+        }
+        .story-quote {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 1.25rem;
+            color: var(--gold);
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        .story-container p {
+            font-size: 1rem; color: #444;
+            margin-bottom: 18px; text-align: left;
+        }
+        .story-signature {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 1.1rem;
+            margin-top: 30px;
+            color: var(--dark);
+        }
+
+        /* --- PROCESO --- */
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .process-card {
+            text-align: center;
+            padding: 35px 25px;
+            background: var(--light);
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+        .process-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.06); }
+        .process-icon {
+            font-size: 2.2rem;
+            color: var(--gold);
+            margin-bottom: 18px;
+        }
+        .process-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+        .process-card p {
+            font-size: 0.9rem;
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        /* --- CATALOGO --- */
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         .product-card {
-            background: var(--light); border-radius: 8px; overflow: hidden;
-            transition: var(--transition); text-align: center; padding-bottom: 20px;
-            display: flex; flex-direction: column; justify-content: space-between;
+            background: var(--light); border-radius: 8px;
+            overflow: hidden; transition: var(--transition);
+            text-align: center; padding-bottom: 25px;
+            display: flex; flex-direction: column;
         }
-        .product-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.08); transform: translateY(-5px); }
-        .product-card img { width: 100%; height: 350px; object-fit: cover; margin-bottom: 15px; }
-        .product-card h3 { font-size: 1.4rem; margin-bottom: 5px; }
-        .product-card p { font-size: 0.9rem; color: var(--gray); margin-bottom: 10px; }
-        .product-card .price { font-size: 1.2rem; font-weight: 600; color: var(--gold); margin-top: auto; }
+        .product-card:hover { box-shadow: 0 15px 40px rgba(0,0,0,0.1); transform: translateY(-5px); }
+        .product-card img {
+            width: 100%; height: 340px;
+            object-fit: cover; margin-bottom: 18px;
+        }
+        .product-card h3 { font-size: 1.5rem; margin-bottom: 6px; }
+        .product-card .description { font-size: 0.88rem; color: var(--gray); margin-bottom: 15px; padding: 0 20px; }
+        .product-card .price { font-size: 1.25rem; font-weight: 600; color: var(--gold); margin-top: auto; }
 
-        .customizer { background-color: var(--light); text-align: center; }
+        /* --- PERSONALIZADOR --- */
+        .customizer { background: var(--light); }
         .customizer-container {
             display: flex; flex-direction: column; align-items: center;
-            gap: 40px; max-width: 1000px; margin: 0 auto;
+            gap: 50px; max-width: 1050px; margin: 0 auto;
         }
         @media (min-width: 768px) {
             .customizer-container { flex-direction: row; justify-content: center; align-items: flex-start; }
         }
-
         .canvas-wrapper {
-            width: 100%; max-width: 420px; min-height: 420px;
+            width: 100%; max-width: 440px;
+            min-height: 440px;
             display: flex; justify-content: center; align-items: center;
             background: var(--white); border-radius: 12px; padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.07);
         }
         #bag-canvas {
-            max-width: 100%; max-height: 420px;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.08));
+            max-width: 100%; max-height: 440px;
             transition: opacity 0.3s ease;
         }
         #bag-canvas.loading { opacity: 0.3; }
 
-        .customizer-controls { text-align: left; max-width: 350px; width: 100%; }
-        .customizer-controls label { display: block; margin-bottom: 10px; font-weight: 500; }
+        .customizer-controls { text-align: left; max-width: 380px; width: 100%; }
+        .customizer-controls label {
+            display: block; margin-bottom: 10px;
+            font-weight: 500; font-size: 0.95rem;
+        }
         .customizer-controls select {
-            width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd;
-            border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 1rem;
-            background: var(--white);
+            width: 100%; padding: 13px; margin-bottom: 22px;
+            border: 1px solid #ddd; border-radius: 4px;
+            font-family: 'Montserrat', sans-serif; font-size: 1rem;
+            background: var(--white); cursor: pointer;
         }
         .color-picker-wrapper {
-            display: flex; align-items: center; gap: 15px; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 15px; margin-bottom: 18px;
         }
         .color-picker-wrapper input[type="color"] {
-            -webkit-appearance: none; border: none; width: 60px; height: 60px;
-            cursor: pointer; border-radius: 50%; padding: 0; background: none;
+            -webkit-appearance: none; border: none;
+            width: 60px; height: 60px; cursor: pointer;
+            border-radius: 50%; padding: 0; background: none;
         }
         .color-picker-wrapper input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         .color-picker-wrapper input[type="color"]::-webkit-color-swatch {
             border: 3px solid var(--white); border-radius: 50%;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
         }
-        .color-name { font-size: 1rem; font-weight: 500; }
-        .price-display {
-            font-size: 1.1rem; font-weight: 600; color: var(--gold);
-            margin-bottom: 20px; display: block;
+        .color-name {
+            font-size: 0.95rem; font-weight: 500;
+            font-family: monospace; color: var(--gray);
         }
         .color-presets {
-            display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;
+            display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;
         }
         .color-preset {
-            width: 32px; height: 32px; border-radius: 50%;
+            width: 34px; height: 34px; border-radius: 50%;
             border: 2px solid var(--white); cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
             transition: transform 0.2s ease;
         }
-        .color-preset:hover { transform: scale(1.15); }
+        .color-preset:hover { transform: scale(1.18); }
+        .price-display {
+            font-size: 1.1rem; font-weight: 600; color: var(--gold);
+            margin-bottom: 22px; display: block;
+        }
+        .note-info {
+            font-size: 0.82rem; color: var(--gray);
+            margin-bottom: 20px; padding: 12px 15px;
+            background: var(--white); border-left: 3px solid var(--gold);
+            border-radius: 4px;
+        }
 
-        footer { background-color: var(--dark); color: var(--white); text-align: center; padding: 40px 5%; }
-        footer .logo { color: var(--white); display: inline-block; margin-bottom: 20px; }
-        .social-links a { color: var(--white); font-size: 1.5rem; margin: 0 10px; transition: var(--transition); }
-        .social-links a:hover { color: var(--gold); }
-        footer p { font-size: 0.8rem; color: #888; margin-top: 20px; }
+        /* --- FOOTER --- */
+        footer {
+            background: var(--dark); color: var(--white);
+            text-align: center; padding: 55px 5% 35px;
+        }
+        .footer-logo {
+            height: 60px; margin: 0 auto 20px;
+            filter: brightness(0) invert(1);
+        }
+        footer p { font-size: 0.9rem; color: #aaa; margin-bottom: 25px; }
+        .social-links { margin-bottom: 30px; }
+        .social-links a {
+            color: var(--white); font-size: 1.6rem;
+            margin: 0 12px; transition: var(--transition);
+            display: inline-block;
+        }
+        .social-links a:hover { color: var(--gold); transform: translateY(-3px); }
+        .footer-copy { font-size: 0.75rem; color: #666; margin-top: 20px; }
+
+        /* --- WHATSAPP FLOTANTE --- */
+        .whatsapp-float {
+            position: fixed; bottom: 25px; right: 25px;
+            background: #25D366; color: var(--white);
+            width: 58px; height: 58px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.7rem; z-index: 200;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+            transition: var(--transition);
+        }
+        .whatsapp-float:hover { transform: scale(1.1); color: var(--white); }
+
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 2.1rem; }
+            .section-title { font-size: 1.9rem; }
+            .header-cta span { display: none; }
+            .header-cta { padding: 10px 14px; }
+            .logo-img { height: 45px; }
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo">Sahar</div>
-        <nav class="nav-links">
-            <a href="#catalogo">Catálogo</a>
-            <a href="#personalizar">Personalizar</a>
-            <a href="#contacto">Contacto</a>
-        </nav>
+        <img src="logo/Logo1.jpeg" alt="Sahar" class="logo-img">
+        <a href="https://wa.me/56927572626?text=Hola%20Sahar!%20Quiero%20cotizar%20una%20cartera%20personalizada." 
+           target="_blank" class="header-cta">
+            <i class="fab fa-whatsapp"></i><span>Cotizar</span>
+        </a>
     </header>
 
-    <div class="hero">
-        <h1>Elegancia Tejida a Mano</h1>
-        <p>Piezas únicas con detalles exclusivos. Diseña la tuya y hazla inolvidable.</p>
-        <a href="#personalizar" class="btn">Diseña tu Cartera</a>
+    <div class="shipping-banner">
+        <i class="fas fa-truck"></i> Envío gratis desde 3 carteras · Starken y Chilexpress a todo Chile
     </div>
 
-    <section id="catalogo">
+    <div class="hero">
+        <h1>Elegancia tejida a mano</h1>
+        <p>Piezas únicas, hechas una por una con dedicación. Diseña la tuya en el color que sueñes.</p>
+        <div class="hero-buttons">
+            <a href="#personalizar" class="btn">Diseña tu cartera</a>
+            <a href="#catalogo" class="btn btn-outline">Ver catálogo</a>
+        </div>
+    </div>
+
+    <!-- HISTORIA -->
+    <section class="story" id="historia">
+        <h2 class="section-title">Nuestra Historia</h2>
+        <div class="story-container">
+            <p class="story-quote">"Hay historias que nacen del amor, atraviesan el dolor y vuelven a florecer."</p>
+            <p>La historia de Sahar es también una parte de mi historia.</p>
+            <p>Comencé a tejer después de perder a mi mamá. Ella tejía mucho y lo hacía precioso. Y, en medio de su ausencia, encontré en cada hilo y en cada puntada una forma de sentirla cerquita de mí.</p>
+            <p>Lo que comenzó siendo una terapia para mi corazón se transformó, poco a poco, en algo más: una oportunidad para crear, emprender y volver a soñar.</p>
+            <p>Soy mujer, soy mamá de tres hijos y hoy estoy en una etapa en la que quiero darme una nueva oportunidad. Quiero crecer, sentirme empoderada, disfrutar lo que hago y construir una vida en la que mis sueños también tengan su espacio.</p>
+            <p>Sahar nace desde ese lugar. Desde mis manos, desde mi historia, desde el amor por lo hecho a mano.</p>
+            <p class="story-signature">— Sahar</p>
+        </div>
+    </section>
+
+    <!-- PROCESO -->
+    <section id="proceso">
+        <h2 class="section-title">Nuestro Proceso</h2>
+        <p class="section-subtitle">Cada cartera pasa por nuestras manos, del hilo al acabado final.</p>
+        <div class="process-grid">
+            <div class="process-card">
+                <div class="process-icon"><i class="fas fa-hand-holding-heart"></i></div>
+                <h3>100% Hecho a mano</h3>
+                <p>Cada puntada es tejida a mano. No hay dos carteras iguales, cada una es única.</p>
+            </div>
+            <div class="process-card">
+                <div class="process-icon"><i class="fas fa-leaf"></i></div>
+                <h3>Materiales sostenibles</h3>
+                <p>Trabajamos con trapillo, un hilo de tela reutilizada. Creemos en crear con conciencia.</p>
+            </div>
+            <div class="process-card">
+                <div class="process-icon"><i class="fas fa-clock"></i></div>
+                <h3>Confección en 7 días</h3>
+                <p>Tu cartera se teje especialmente para ti. Te avisamos cuando esté lista para enviar.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CATALOGO -->
+    <section id="catalogo" style="background: var(--light);">
         <h2 class="section-title">Nuestros Modelos</h2>
-        <p class="section-subtitle">Cada pieza es tejida a mano con dedicación y los mejores materiales.</p>
+        <p class="section-subtitle">Elige el modelo que más te enamore. Todos se pueden personalizar en el color que quieras.</p>
         <div class="catalog-grid">
             <div class="product-card">
-                <img src="imagenes/modelos/ModeloAlba.jpeg" alt="Modelo Alba">
+                <img src="imagenes/modelos/catalogo/ModeloAlba.jpeg" alt="Modelo Alba">
                 <h3>Modelo Alba</h3>
-                <p>Elegancia clásica con borla y herraje dorado.</p>
+                <p class="description">Elegancia clásica con borla y herraje dorado.</p>
                 <p class="price">$34.000</p>
             </div>
             <div class="product-card">
-                <img src="imagenes/modelos/ModeloAurora.jpeg" alt="Modelo Aurora">
+                <img src="imagenes/modelos/catalogo/ModeloAurora.jpeg" alt="Modelo Aurora">
                 <h3>Modelo Aurora</h3>
-                <p>Diseño sofisticado con detalles únicos.</p>
+                <p class="description">Diseño sofisticado con detalles únicos.</p>
                 <p class="price">$45.000</p>
             </div>
             <div class="product-card">
-                <img src="imagenes/modelos/ModeloRocio.jpeg" alt="Modelo Rocío">
+                <img src="imagenes/modelos/catalogo/ModeloRocio.jpeg" alt="Modelo Rocío">
                 <h3>Modelo Rocío</h3>
-                <p>Perlas y estilo para un look inolvidable.</p>
+                <p class="description">Perlas y estilo para un look inolvidable.</p>
                 <p class="price">$32.000</p>
             </div>
             <div class="product-card">
-                <img src="imagenes/modelos/ModeloBruma.jpeg" alt="Mochila Bruma">
+                <img src="imagenes/modelos/catalogo/ModeloBruma.jpeg" alt="Mochila Bruma">
                 <h3>Mochila Bruma</h3>
-                <p>Práctica y elegante para el día a día.</p>
+                <p class="description">Práctica y elegante para el día a día.</p>
                 <p class="price">$35.000</p>
             </div>
             <div class="product-card">
-                <img src="imagenes/modelos/ModeloLumina.jpeg" alt="Modelo Lumina">
+                <img src="imagenes/modelos/catalogo/ModeloLumina.jpeg" alt="Modelo Lumina">
                 <h3>Modelo Lumina</h3>
-                <p>Contraste perfecto con cadena de lujo.</p>
+                <p class="description">Contraste perfecto con cadena de lujo.</p>
                 <p class="price">$40.000</p>
             </div>
         </div>
     </section>
 
+    <!-- PERSONALIZADOR -->
     <section id="personalizar" class="customizer">
         <h2 class="section-title">Diseña tu Sahar</h2>
-        <p class="section-subtitle">Elige el modelo y el color exacto. Verás una previsualización realista de tu cartera.</p>
+        <p class="section-subtitle">Elige el modelo y el color exacto. Verás una vista previa realista de tu cartera.</p>
         
         <div class="customizer-container">
             <div class="canvas-wrapper">
@@ -199,19 +386,19 @@
             </div>
             
             <div class="customizer-controls">
-                <label for="model-select">1. Selecciona el Modelo:</label>
+                <label for="model-select">1. Selecciona el modelo:</label>
                 <select id="model-select">
-                    <option value="Alba" data-price="34000" data-img="imagenes/modelos/ModeloAlba.jpeg">Modelo Alba - $34.000</option>
-                    <option value="Aurora" data-price="45000" data-img="imagenes/modelos/ModeloAurora.jpeg">Modelo Aurora - $45.000</option>
-                    <option value="Rocío" data-price="32000" data-img="imagenes/modelos/ModeloRocio.jpeg">Modelo Rocío - $32.000</option>
-                    <option value="Bruma" data-price="35000" data-img="imagenes/modelos/ModeloBruma.jpeg">Mochila Bruma - $35.000</option>
-                    <option value="Lumina" data-price="40000" data-img="imagenes/modelos/ModeloLumina.jpeg">Modelo Lumina - $40.000</option>
+                    <option value="Alba" data-price="34000" data-img="imagenes/modelos/creatusahar/ModeloAlbaFrontal.jpeg">Modelo Alba — $34.000</option>
+                    <option value="Aurora" data-price="45000" data-img="imagenes/modelos/creatusahar/ModeloAuroraFrontal.jpeg">Modelo Aurora — $45.000</option>
+                    <option value="Rocío" data-price="32000" data-img="imagenes/modelos/creatusahar/ModeloRocioFrontal.jpeg">Modelo Rocío — $32.000</option>
+                    <option value="Bruma" data-price="35000" data-img="imagenes/modelos/creatusahar/ModeloBrumaFrontal.jpeg">Mochila Bruma — $35.000</option>
+                    <option value="Lumina" data-price="40000" data-img="imagenes/modelos/creatusahar/ModeloLuminaFrontal.jpeg">Modelo Lumina — $40.000</option>
                 </select>
 
-                <label for="color-picker">2. Elige tu Color Favorito:</label>
+                <label for="color-picker">2. Elige tu color favorito:</label>
                 <div class="color-picker-wrapper">
-                    <input type="color" id="color-picker" value="#D4AF37">
-                    <span class="color-name" id="color-hex">#D4AF37</span>
+                    <input type="color" id="color-picker" value="#E5A9B8">
+                    <span class="color-name" id="color-hex">#E5A9B8</span>
                 </div>
 
                 <div class="color-presets">
@@ -225,22 +412,34 @@
                     <div class="color-preset" style="background:#4A5D4E" data-color="#4A5D4E" title="Verde Bosque"></div>
                 </div>
 
+                <div class="note-info">
+                    <i class="fas fa-info-circle" style="color: var(--gold); margin-right: 6px;"></i>
+                    Los colores son referenciales. Al confirmar tu pedido te enviamos muestras reales de trapillo disponible.
+                </div>
+
                 <span class="price-display" id="selected-price">Precio base: $34.000</span>
 
-                <button class="btn" style="width: 100%;" onclick="enviarWhatsApp()">Cotizar por WhatsApp</button>
+                <button class="btn" style="width: 100%;" onclick="enviarWhatsApp()">
+                    <i class="fab fa-whatsapp" style="margin-right: 8px;"></i> Cotizar por WhatsApp
+                </button>
             </div>
         </div>
     </section>
 
     <footer id="contacto">
-        <div class="logo">Sahar</div>
-        <p style="margin-bottom: 20px; font-weight: 300;">Piezas tejidas a mano con detalles únicos.</p>
+        <img src="logo/Logo1.jpeg" alt="Sahar" class="footer-logo">
+        <p>Piezas tejidas a mano con detalles únicos.</p>
         <div class="social-links">
-            <a href="https://instagram.com/saharchile.cl" target="_blank"><i class="fab fa-instagram"></i></a>
-            <a href="https://wa.me/56968433508" target="_blank"><i class="fab fa-whatsapp"></i></a>
+            <a href="https://instagram.com/saharchile.cl" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="https://wa.me/56927572626" target="_blank" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
         </div>
-        <p>&copy; 2026 Sahar. Todos los derechos reservados.</p>
+        <p class="footer-copy">© 2026 Sahar · Hecho a mano en Chile 🇨🇱</p>
     </footer>
+
+    <a href="https://wa.me/56927572626?text=Hola%20Sahar!%20Quiero%20cotizar%20una%20cartera." 
+       target="_blank" class="whatsapp-float" aria-label="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
 
     <script>
         const canvas = document.getElementById('bag-canvas');
@@ -377,7 +576,7 @@
             const opt = modelSelect.options[modelSelect.selectedIndex];
             const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
             const color = colorHex.textContent;
-            const telefono = "56968433508";
+            const telefono = "56927572626";
             const mensaje = `Hola Sahar! 👋 Me encantaría cotizar una cartera personalizada.%0A%0A📌 *Modelo:* ${modelo}%0A🎨 *Color elegido:* ${color}%0A💰 *Precio base:* $${price}%0A%0A¿Me pueden ayudar con el valor final y tiempo de confección?`;
             window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
         }
