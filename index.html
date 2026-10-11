@@ -17,7 +17,6 @@
             --light: #F9F9F9;
             --white: #FFFFFF;
             --gray: #666666;
-            --rose: #E5A9B8;
             --transition: all 0.3s ease;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -176,26 +175,6 @@
         }
         .color-preset:hover { transform: scale(1.18); }
 
-        .shield-controls { display: flex; gap: 10px; margin-bottom: 8px; }
-        .shield-btn {
-            flex: 1; padding: 11px 15px;
-            background: var(--white); color: var(--dark);
-            border: 1.5px solid #ddd; border-radius: 4px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.82rem; cursor: pointer;
-            transition: var(--transition);
-            display: inline-flex; align-items: center; justify-content: center;
-            gap: 8px;
-        }
-        .shield-btn:hover { border-color: var(--gold); color: var(--gold); }
-        .shield-btn.active { background: var(--gold); color: var(--white); border-color: var(--gold); }
-        .shield-clear { flex: 0 0 auto; }
-        .shield-hint {
-            font-size: 0.78rem; color: var(--gold);
-            margin-bottom: 15px; font-style: italic;
-            line-height: 1.4;
-        }
-
         .price-display {
             font-size: 1.1rem; font-weight: 600; color: var(--gold);
             margin-bottom: 22px; display: block;
@@ -211,7 +190,14 @@
             background: var(--dark); color: var(--white);
             text-align: center; padding: 55px 5% 35px;
         }
-        .footer-logo { height: 60px; margin: 0 auto 20px; filter: brightness(0) invert(1); }
+        /* Fix del logo: invertimos colores y usamos screen para que el fondo blanco se vuelva transparente */
+        .footer-logo {
+            height: 55px;
+            margin: 0 auto 20px;
+            filter: invert(1);
+            mix-blend-mode: screen;
+            display: block;
+        }
         footer p { font-size: 0.9rem; color: #aaa; margin-bottom: 25px; }
         .social-links { margin-bottom: 30px; }
         .social-links a {
@@ -373,18 +359,6 @@
                     <div class="color-preset" style="background:#4A5D4E" data-color="#4A5D4E" title="Verde Bosque"></div>
                 </div>
 
-                <div class="shield-controls">
-                    <button type="button" id="shield-toggle" class="shield-btn">
-                        <i class="fas fa-shield-alt"></i> Proteger zonas
-                    </button>
-                    <button type="button" id="shield-clear" class="shield-btn shield-clear" style="display:none;">
-                        <i class="fas fa-times"></i> Limpiar
-                    </button>
-                </div>
-                <p class="shield-hint" id="shield-hint" style="display:none;">
-                    👆 Haz clic sobre el fondo, broche o accesorio que NO quieres que se pinte. La zona se rellenará automáticamente.
-                </p>
-
                 <div class="note-info">
                     <i class="fas fa-info-circle" style="color: var(--gold); margin-right: 6px;"></i>
                     Los colores son referenciales. Al confirmar tu pedido te enviamos muestras reales del trapillo disponible.
@@ -421,13 +395,9 @@
         const colorPicker = document.getElementById('color-picker');
         const colorHex = document.getElementById('color-hex');
         const priceDisplay = document.getElementById('selected-price');
-        const shieldToggle = document.getElementById('shield-toggle');
-        const shieldClear = document.getElementById('shield-clear');
-        const shieldHint = document.getElementById('shield-hint');
 
         let originalImageData = null;
-        let shieldMask = null;        // Uint8Array(w*h) → 1 = protegido
-        let shieldMode = false;
+        let backgroundMask = null; // 1 = fondo protegido
 
         // --- Conversión de color ---
         function hexToRgb(hex) {
@@ -472,17 +442,28 @@
             return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
         }
 
-        // --- Detección automática de zonas a preservar (sin flood fill) ---
-        function shouldPreserveAuto(r, g, b) {
+        // --- Reglas de preservación automática ---
+        // Devuelve true si el píxel NO debe pintarse (herrajes, logo, perlas, etc.)
+        function shouldPreservePixel(r, g, b) {
             const [h, s, l] = rgbToHsl(r, g, b);
-            if (l < 0.10) return true;                        // herrajes negros
-            if (s < 0.10) return true;                        // fondo gris/blanco, plateados
-            if (h >= 20/360 && h <= 75/360 && s > 0.15 && l > 0.30 && l < 0.90) return true; // dorados
+
+            // 1. Muy oscuro: etiqueta SAHAR, herrajes negros, cadenas oscuras
+            if (l < 0.22) return true;
+
+            // 2. Muy desaturado: fondo blanco/gris, perlas, plateados, herrajes cromados
+            if (s < 0.10) return true;
+
+            // 3. Oscuro y poco saturado: textos negros, sombras profundas
+            if (l < 0.32 && s < 0.25) return true;
+
+            // 4. Dorado / bronce / cobre metálico (con reflejos y brillos)
+            if (h >= 20/360 && h <= 80/360 && s > 0.18 && l > 0.32 && l < 0.92) return true;
+
             return false;
         }
 
-        // --- Flood fill sobre el canvas para proteger una zona ---
-        function floodFillShield(startX, startY, tolerance) {
+        // --- Flood fill para detectar el fondo conectado a los bordes ---
+        function floodFillBackground(startX, startY, tolerance) {
             const w = canvas.width, h = canvas.height;
             const data = originalImageData.data;
             const startIdx = (startY * w + startX) * 4;
@@ -495,11 +476,10 @@
             let head = 0;
             while (head < queue.length) {
                 const pos = queue[head++];
-                shieldMask[pos] = 1;
+                backgroundMask[pos] = 1;
 
                 const x = pos % w;
                 const y = (pos - x) / w;
-
                 const neighbors = [
                     x > 0     ? pos - 1 : -1,
                     x < w - 1 ? pos + 1 : -1,
@@ -522,15 +502,14 @@
             }
         }
 
-        // --- Detección automática del fondo desde las 4 esquinas ---
-        function autoDetectBackground() {
+        function detectBackground() {
             const w = canvas.width, h = canvas.height;
             const tol = 32;
             const corners = [[0,0], [w-1,0], [0,h-1], [w-1,h-1]];
             corners.forEach(([x, y]) => {
                 if (x < 0 || x >= w || y < 0 || y >= h) return;
-                if (shieldMask[y * w + x]) return; // ya protegido
-                floodFillShield(x, y, tol);
+                if (backgroundMask[y * w + x]) return;
+                floodFillBackground(x, y, tol);
             });
         }
 
@@ -548,8 +527,8 @@
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 try {
                     originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    shieldMask = new Uint8Array(canvas.width * canvas.height);
-                    autoDetectBackground();
+                    backgroundMask = new Uint8Array(canvas.width * canvas.height);
+                    detectBackground();
                     applyColor();
                 } catch (e) {
                     console.error('Error leyendo la imagen:', e);
@@ -565,10 +544,10 @@
 
         // --- Recolorear píxeles ---
         function applyColor() {
-            if (!originalImageData || !shieldMask) return;
+            if (!originalImageData || !backgroundMask) return;
 
             const [tr, tg, tb] = hexToRgb(colorPicker.value);
-            const [targetH, targetS] = rgbToHsl(tr, tg, tb);
+            const [targetH, targetS, targetL] = rgbToHsl(tr, tg, tb);
 
             const src = originalImageData.data;
             const out = new Uint8ClampedArray(src.length);
@@ -579,91 +558,38 @@
                 const py = Math.floor((i / 4) / w);
                 const r = src[i], g = src[i+1], b = src[i+2], a = src[i+3];
 
-                // 1) Protección por máscara (fondo + clics manuales)
-                if (shieldMask[py * w + px]) {
+                // 1) Protección de fondo detectado
+                if (backgroundMask[py * w + px]) {
                     out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
                     continue;
                 }
 
-                // 2) Detección automática de herrajes / plateados / negros
-                if (shouldPreserveAuto(r, g, b)) {
+                // 2) Protección automática (herrajes, logo, perlas)
+                if (shouldPreservePixel(r, g, b)) {
                     out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
                     continue;
                 }
 
-                // 3) Recolorear manteniendo luminosidad
+                // 3) Recolorear
                 const [h, s, l] = rgbToHsl(r, g, b);
-                const newS = Math.max(s * 0.4, targetS * 0.9);
-                const [nr, ng, nb] = hslToRgb(targetH, newS, l);
+
+                // Saturación: prioriza la del color objetivo, mantiene un poco de textura
+                const newS = Math.min(1, targetS * 0.85 + s * 0.15);
+
+                // Luminosidad: desplaza hacia el brillo del color objetivo conservando la textura
+                // lShift va de -0.30 (colores oscuros) a +0.27 (colores claros)
+                const lShift = (targetL - 0.5) * 0.6;
+                const newL = Math.max(0.05, Math.min(0.95, l + lShift));
+
+                const [nr, ng, nb] = hslToRgb(targetH, newS, newL);
                 out[i] = nr; out[i+1] = ng; out[i+2] = nb; out[i+3] = a;
             }
 
             ctx.putImageData(new ImageData(out, w, canvas.height), 0, 0);
-
-            // Si el modo escudo está activo, superponer un tinte dorado translúcido
-            if (shieldMode) {
-                drawShieldOverlay();
-            }
         }
 
-        function drawShieldOverlay() {
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const d = imgData.data;
-            for (let i = 0; i < shieldMask.length; i++) {
-                if (shieldMask[i]) {
-                    const idx = i * 4;
-                    d[idx]     = Math.round(d[idx]     * 0.55 + 212 * 0.45);
-                    d[idx + 1] = Math.round(d[idx + 1] * 0.55 + 175 * 0.45);
-                    d[idx + 2] = Math.round(d[idx + 2] * 0.55 + 55  * 0.45);
-                }
-            }
-            ctx.putImageData(imgData, 0, 0);
-        }
-
-        // --- Modo escudo ---
-        function updateShieldUI() {
-            if (shieldMode) {
-                shieldToggle.classList.add('active');
-                shieldToggle.innerHTML = '<i class="fas fa-shield-alt"></i> Modo activo';
-                shieldHint.style.display = 'block';
-                canvas.style.cursor = 'crosshair';
-            } else {
-                shieldToggle.classList.remove('active');
-                shieldToggle.innerHTML = '<i class="fas fa-shield-alt"></i> Proteger zonas';
-                shieldHint.style.display = 'none';
-                canvas.style.cursor = 'default';
-            }
-            shieldClear.style.display = shieldMask && shieldMask.some(v => v) ? 'inline-flex' : 'none';
-        }
-
-        shieldToggle.addEventListener('click', () => {
-            shieldMode = !shieldMode;
-            updateShieldUI();
-            applyColor();
-        });
-
-        shieldClear.addEventListener('click', () => {
-            if (!shieldMask) return;
-            shieldMask = new Uint8Array(canvas.width * canvas.height);
-            updateShieldUI();
-            applyColor();
-        });
-
-        canvas.addEventListener('click', (e) => {
-            if (!shieldMode || !originalImageData || !shieldMask) return;
-            const rect = canvas.getBoundingClientRect();
-            const x = Math.round((e.clientX - rect.left) * canvas.width / rect.width);
-            const y = Math.round((e.clientY - rect.top) * canvas.height / rect.height);
-            if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) return;
-            floodFillShield(x, y, 42);
-            updateShieldUI();
-            applyColor();
-        });
-
-        // --- Eventos generales ---
+        // --- Eventos ---
         modelSelect.addEventListener('change', () => {
-            shieldMode = false;
-            updateShieldUI();
             const opt = modelSelect.options[modelSelect.selectedIndex];
             const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
             priceDisplay.textContent = `Precio base: $${price}`;
