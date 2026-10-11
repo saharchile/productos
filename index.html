@@ -26,7 +26,6 @@
         h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 400; }
         img { max-width: 100%; display: block; }
 
-        /* --- HEADER --- */
         header {
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px 5%; background: rgba(255, 255, 255, 0.98);
@@ -44,7 +43,6 @@
         }
         .header-cta:hover { background: #B8962E; }
 
-        /* --- BANNER ENVÍO --- */
         .shipping-banner {
             background: var(--dark); color: var(--white);
             text-align: center; padding: 10px 5%;
@@ -52,7 +50,6 @@
         }
         .shipping-banner i { color: var(--gold); margin-right: 8px; }
 
-        /* --- HERO --- */
         .hero {
             min-height: 85vh;
             display: flex; flex-direction: column;
@@ -82,74 +79,43 @@
         }
         .btn-outline:hover { background: var(--white); color: var(--dark); }
 
-        /* --- SECCIONES --- */
         section { padding: 90px 5%; }
         .section-title { text-align: center; font-size: 2.4rem; margin-bottom: 15px; }
         .section-subtitle { text-align: center; color: var(--gray); margin-bottom: 55px; font-weight: 300; font-size: 0.95rem; max-width: 620px; margin-left: auto; margin-right: auto; }
 
-        /* --- HISTORIA --- */
         .story { background: var(--light); }
-        .story-container {
-            max-width: 780px; margin: 0 auto; text-align: center;
-        }
+        .story-container { max-width: 780px; margin: 0 auto; text-align: center; }
         .story-quote {
             font-family: 'Playfair Display', serif;
-            font-style: italic;
-            font-size: 1.25rem;
-            color: var(--gold);
-            margin-bottom: 30px;
-            line-height: 1.5;
+            font-style: italic; font-size: 1.25rem;
+            color: var(--gold); margin-bottom: 30px; line-height: 1.5;
         }
-        .story-container p {
-            font-size: 1rem; color: #444;
-            margin-bottom: 18px; text-align: left;
-        }
+        .story-container p { font-size: 1rem; color: #444; margin-bottom: 18px; text-align: left; }
         .story-signature {
             font-family: 'Playfair Display', serif;
-            font-style: italic;
-            font-size: 1.1rem;
-            margin-top: 30px;
-            color: var(--dark);
+            font-style: italic; font-size: 1.1rem;
+            margin-top: 30px; color: var(--dark);
         }
 
-        /* --- PROCESO --- */
         .process-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 30px;
-            max-width: 1000px;
-            margin: 0 auto;
+            gap: 30px; max-width: 1000px; margin: 0 auto;
         }
         .process-card {
-            text-align: center;
-            padding: 35px 25px;
-            background: var(--light);
-            border-radius: 10px;
+            text-align: center; padding: 35px 25px;
+            background: var(--light); border-radius: 10px;
             transition: var(--transition);
         }
         .process-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.06); }
-        .process-icon {
-            font-size: 2.2rem;
-            color: var(--gold);
-            margin-bottom: 18px;
-        }
-        .process-card h3 {
-            font-size: 1.3rem;
-            margin-bottom: 12px;
-        }
-        .process-card p {
-            font-size: 0.9rem;
-            color: var(--gray);
-            line-height: 1.6;
-        }
+        .process-icon { font-size: 2.2rem; color: var(--gold); margin-bottom: 18px; }
+        .process-card h3 { font-size: 1.3rem; margin-bottom: 12px; }
+        .process-card p { font-size: 0.9rem; color: var(--gray); line-height: 1.6; }
 
-        /* --- CATALOGO --- */
         .catalog-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
+            gap: 30px; max-width: 1200px; margin: 0 auto;
         }
         .product-card {
             background: var(--light); border-radius: 8px;
@@ -158,15 +124,11 @@
             display: flex; flex-direction: column;
         }
         .product-card:hover { box-shadow: 0 15px 40px rgba(0,0,0,0.1); transform: translateY(-5px); }
-        .product-card img {
-            width: 100%; height: 340px;
-            object-fit: cover; margin-bottom: 18px;
-        }
+        .product-card img { width: 100%; height: 340px; object-fit: cover; margin-bottom: 18px; }
         .product-card h3 { font-size: 1.5rem; margin-bottom: 6px; }
         .product-card .description { font-size: 0.88rem; color: var(--gray); margin-bottom: 15px; padding: 0 20px; }
         .product-card .price { font-size: 1.25rem; font-weight: 600; color: var(--gold); margin-top: auto; }
 
-        /* --- PERSONALIZADOR --- */
         .customizer { background: var(--light); }
         .customizer-container {
             display: flex; flex-direction: column; align-items: center;
@@ -176,16 +138,12 @@
             .customizer-container { flex-direction: row; justify-content: center; align-items: flex-start; }
         }
         .canvas-wrapper {
-            width: 100%; max-width: 440px;
-            min-height: 440px;
+            width: 100%; max-width: 440px; min-height: 440px;
             display: flex; justify-content: center; align-items: center;
             background: var(--white); border-radius: 12px; padding: 20px;
             box-shadow: 0 15px 40px rgba(0,0,0,0.07);
         }
-        #bag-canvas {
-            max-width: 100%; max-height: 440px;
-            transition: opacity 0.3s ease;
-        }
+        #bag-canvas { max-width: 100%; max-height: 440px; transition: opacity 0.3s ease; }
         #bag-canvas.loading { opacity: 0.3; }
 
         .customizer-controls { text-align: left; max-width: 380px; width: 100%; }
@@ -199,9 +157,7 @@
             font-family: 'Montserrat', sans-serif; font-size: 1rem;
             background: var(--white); cursor: pointer;
         }
-        .color-picker-wrapper {
-            display: flex; align-items: center; gap: 15px; margin-bottom: 18px;
-        }
+        .color-picker-wrapper { display: flex; align-items: center; gap: 15px; margin-bottom: 18px; }
         .color-picker-wrapper input[type="color"] {
             -webkit-appearance: none; border: none;
             width: 60px; height: 60px; cursor: pointer;
@@ -212,13 +168,8 @@
             border: 3px solid var(--white); border-radius: 50%;
             box-shadow: 0 2px 10px rgba(0,0,0,0.12);
         }
-        .color-name {
-            font-size: 0.95rem; font-weight: 500;
-            font-family: monospace; color: var(--gray);
-        }
-        .color-presets {
-            display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;
-        }
+        .color-name { font-size: 0.95rem; font-weight: 500; font-family: monospace; color: var(--gray); }
+        .color-presets { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
         .color-preset {
             width: 34px; height: 34px; border-radius: 50%;
             border: 2px solid var(--white); cursor: pointer;
@@ -226,6 +177,30 @@
             transition: transform 0.2s ease;
         }
         .color-preset:hover { transform: scale(1.18); }
+
+        /* SHIELD MODE */
+        .shield-controls { display: flex; gap: 10px; margin-bottom: 8px; }
+        .shield-btn {
+            flex: 1; padding: 11px 15px;
+            background: var(--white); color: var(--dark);
+            border: 1.5px solid #ddd; border-radius: 4px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.82rem; cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 8px;
+        }
+        .shield-btn:hover { border-color: var(--gold); color: var(--gold); }
+        .shield-btn.active {
+            background: var(--gold); color: var(--white); border-color: var(--gold);
+        }
+        .shield-clear { flex: 0 0 auto; }
+        .shield-hint {
+            font-size: 0.78rem; color: var(--gold);
+            margin-bottom: 15px; font-style: italic;
+            line-height: 1.4;
+        }
+
         .price-display {
             font-size: 1.1rem; font-weight: 600; color: var(--gold);
             margin-bottom: 22px; display: block;
@@ -237,15 +212,11 @@
             border-radius: 4px;
         }
 
-        /* --- FOOTER --- */
         footer {
             background: var(--dark); color: var(--white);
             text-align: center; padding: 55px 5% 35px;
         }
-        .footer-logo {
-            height: 60px; margin: 0 auto 20px;
-            filter: brightness(0) invert(1);
-        }
+        .footer-logo { height: 60px; margin: 0 auto 20px; filter: brightness(0) invert(1); }
         footer p { font-size: 0.9rem; color: #aaa; margin-bottom: 25px; }
         .social-links { margin-bottom: 30px; }
         .social-links a {
@@ -256,7 +227,6 @@
         .social-links a:hover { color: var(--gold); transform: translateY(-3px); }
         .footer-copy { font-size: 0.75rem; color: #666; margin-top: 20px; }
 
-        /* --- WHATSAPP FLOTANTE --- */
         .whatsapp-float {
             position: fixed; bottom: 25px; right: 25px;
             background: #25D366; color: var(--white);
@@ -300,7 +270,6 @@
         </div>
     </div>
 
-    <!-- HISTORIA -->
     <section class="story" id="historia">
         <h2 class="section-title">Nuestra Historia</h2>
         <div class="story-container">
@@ -314,7 +283,6 @@
         </div>
     </section>
 
-    <!-- PROCESO -->
     <section id="proceso">
         <h2 class="section-title">Nuestro Proceso</h2>
         <p class="section-subtitle">Cada cartera pasa por nuestras manos, del hilo al acabado final.</p>
@@ -337,7 +305,6 @@
         </div>
     </section>
 
-    <!-- CATALOGO -->
     <section id="catalogo" style="background: var(--light);">
         <h2 class="section-title">Nuestros Modelos</h2>
         <p class="section-subtitle">Elige el modelo que más te enamore. Todos se pueden personalizar en el color que quieras.</p>
@@ -375,7 +342,6 @@
         </div>
     </section>
 
-    <!-- PERSONALIZADOR -->
     <section id="personalizar" class="customizer">
         <h2 class="section-title">Diseña tu Sahar</h2>
         <p class="section-subtitle">Elige el modelo y el color exacto. Verás una vista previa realista de tu cartera.</p>
@@ -412,9 +378,21 @@
                     <div class="color-preset" style="background:#4A5D4E" data-color="#4A5D4E" title="Verde Bosque"></div>
                 </div>
 
+                <div class="shield-controls">
+                    <button type="button" id="shield-toggle" class="shield-btn">
+                        <i class="fas fa-shield-alt"></i> Proteger accesorios
+                    </button>
+                    <button type="button" id="shield-clear" class="shield-btn shield-clear" style="display:none;">
+                        <i class="fas fa-times"></i> Limpiar
+                    </button>
+                </div>
+                <p class="shield-hint" id="shield-hint" style="display:none;">
+                    👆 Haz clic sobre el broche, etiqueta o accesorio que NO quieres que se pinte.
+                </p>
+
                 <div class="note-info">
                     <i class="fas fa-info-circle" style="color: var(--gold); margin-right: 6px;"></i>
-                    Los colores son referenciales. Al confirmar tu pedido te enviamos muestras reales de trapillo disponible.
+                    Los colores son referenciales. Al confirmar tu pedido te enviamos muestras reales del trapillo disponible.
                 </div>
 
                 <span class="price-display" id="selected-price">Precio base: $34.000</span>
@@ -448,9 +426,15 @@
         const colorPicker = document.getElementById('color-picker');
         const colorHex = document.getElementById('color-hex');
         const priceDisplay = document.getElementById('selected-price');
+        const shieldToggle = document.getElementById('shield-toggle');
+        const shieldClear = document.getElementById('shield-clear');
+        const shieldHint = document.getElementById('shield-hint');
 
         let originalImageData = null;
+        let shieldMode = false;
+        let shieldPoints = []; // { x, y, r, g, b }
 
+        // --- Conversión de color ---
         function hexToRgb(hex) {
             hex = hex.replace('#', '');
             if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
@@ -495,6 +479,24 @@
             return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
         }
 
+        // --- Detección automática de zonas a preservar ---
+        function shouldPreserveAuto(r, g, b) {
+            const [h, s, l] = rgbToHsl(r, g, b);
+
+            // 1. Muy oscuro: herrajes negros, tiras negras
+            if (l < 0.10) return true;
+
+            // 2. Muy desaturado: fondo gris/blanco, plateado, herrajes cromados
+            if (s < 0.10) return true;
+
+            // 3. Dorado / bronce / cobre metálico
+            //    Rango de hue amplio, saturación desde 0.15 (los metálicos reflectantes tienen baja sat)
+            if (h >= 20/360 && h <= 75/360 && s > 0.15 && l > 0.30 && l < 0.90) return true;
+
+            return false;
+        }
+
+        // --- Cargar imagen ---
         function loadBagImage(src) {
             canvas.classList.add('loading');
             const img = new Image();
@@ -521,6 +523,7 @@
             img.src = src;
         }
 
+        // --- Recolorear píxeles ---
         function applyColor() {
             if (!originalImageData) return;
 
@@ -530,27 +533,124 @@
             const src = originalImageData.data;
             const out = new Uint8ClampedArray(src.length);
 
+            const shieldRadius = canvas.width * 0.06;
+            const shieldTolerance = 55;
+
             for (let i = 0; i < src.length; i += 4) {
                 const r = src[i], g = src[i+1], b = src[i+2], a = src[i+3];
-                const [h, s, l] = rgbToHsl(r, g, b);
+                const px = (i / 4) % canvas.width;
+                const py = Math.floor((i / 4) / canvas.width);
 
-                const isBackground = (s < 0.10);
-                const isGold = (h >= 30/360 && h <= 70/360 && s > 0.25);
-
-                if (isBackground || isGold) {
+                // 1) Verificar puntos protegidos manualmente
+                let shielded = false;
+                for (const p of shieldPoints) {
+                    const dx = px - p.x, dy = py - p.y;
+                    if (dx*dx + dy*dy < shieldRadius * shieldRadius) { shielded = true; break; }
+                    const dist = Math.sqrt((r-p.r)**2 + (g-p.g)**2 + (b-p.b)**2);
+                    if (dist < shieldTolerance) { shielded = true; break; }
+                }
+                if (shielded) {
                     out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
                     continue;
                 }
 
+                // 2) Detección automática (herrajes, fondo, plateados, dorados)
+                if (shouldPreserveAuto(r, g, b)) {
+                    out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
+                    continue;
+                }
+
+                // 3) Recolorear: nuevo hue + saturación objetivo, manteniendo luminosidad original
+                const [h, s, l] = rgbToHsl(r, g, b);
                 const newS = Math.max(s * 0.4, targetS * 0.9);
                 const [nr, ng, nb] = hslToRgb(targetH, newS, l);
                 out[i] = nr; out[i+1] = ng; out[i+2] = nb; out[i+3] = a;
             }
 
             ctx.putImageData(new ImageData(out, canvas.width, canvas.height), 0, 0);
+
+            // Dibujar indicadores de zonas protegidas
+            if (shieldPoints.length > 0) {
+                ctx.save();
+                shieldPoints.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, shieldRadius * 0.7, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(212, 175, 55, 0.95)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([6, 4]);
+                    ctx.stroke();
+                });
+                ctx.restore();
+            }
         }
 
+        // --- Modo escudo ---
+        function updateShieldUI() {
+            if (shieldMode) {
+                shieldToggle.classList.add('active');
+                shieldToggle.innerHTML = '<i class="fas fa-shield-alt"></i> Modo activo';
+                shieldHint.style.display = 'block';
+            } else {
+                shieldToggle.classList.remove('active');
+                shieldToggle.innerHTML = '<i class="fas fa-shield-alt"></i> Proteger accesorios';
+                shieldHint.style.display = 'none';
+            }
+            shieldClear.style.display = shieldPoints.length > 0 ? 'inline-flex' : 'none';
+            canvas.style.cursor = shieldMode ? 'crosshair' : 'default';
+        }
+
+        shieldToggle.addEventListener('click', () => {
+            shieldMode = !shieldMode;
+            updateShieldUI();
+        });
+
+        shieldClear.addEventListener('click', () => {
+            shieldPoints = [];
+            updateShieldUI();
+            applyColor();
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (!shieldMode || !originalImageData) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.round((e.clientX - rect.left) * canvas.width / rect.width);
+            const y = Math.round((e.clientY - rect.top) * canvas.height / rect.height);
+
+            if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) return;
+
+            // Promediar el color alrededor del clic (muestra 7x7)
+            const sample = 3;
+            let rs = 0, gs = 0, bs = 0, count = 0;
+            const data = originalImageData.data;
+            for (let dy = -sample; dy <= sample; dy++) {
+                for (let dx = -sample; dx <= sample; dx++) {
+                    const px = x + dx, py = y + dy;
+                    if (px < 0 || px >= canvas.width || py < 0 || py >= canvas.height) continue;
+                    const idx = (py * canvas.width + px) * 4;
+                    rs += data[idx]; gs += data[idx+1]; bs += data[idx+2];
+                    count++;
+                }
+            }
+
+            shieldPoints.push({
+                x, y,
+                r: Math.round(rs / count),
+                g: Math.round(gs / count),
+                b: Math.round(bs / count)
+            });
+
+            updateShieldUI();
+            applyColor();
+        });
+
+        // --- Eventos generales ---
         modelSelect.addEventListener('change', () => {
+            // Limpiar protecciones al cambiar de modelo (las coordenadas son relativas a la imagen)
+            shieldPoints = [];
+            shieldMode = false;
+            updateShieldUI();
+
             const opt = modelSelect.options[modelSelect.selectedIndex];
             const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
             priceDisplay.textContent = `Precio base: $${price}`;
@@ -571,6 +671,7 @@
             });
         });
 
+        // --- WhatsApp ---
         function enviarWhatsApp() {
             const modelo = modelSelect.value;
             const opt = modelSelect.options[modelSelect.selectedIndex];
@@ -581,6 +682,7 @@
             window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
         }
 
+        // --- Inicializar ---
         const firstOpt = modelSelect.options[0];
         priceDisplay.textContent = `Precio base: $${parseInt(firstOpt.getAttribute('data-price')).toLocaleString('es-CL')}`;
         loadBagImage(firstOpt.getAttribute('data-img'));
