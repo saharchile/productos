@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://saharchile.github.io/productos/sitemap.xml
