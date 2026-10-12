@@ -79,21 +79,27 @@
 
   /* -------- Reglas de preservación automática ------------ */
   // Devuelve true si el píxel NO debe pintarse
-  // (herrajes, logo, perlas, etc.)
+  // (herrajes dorados, broche, logo SAHAR, perlas, etc.)
   function shouldPreservePixel(r, g, b) {
     const [h, s, l] = rgbToHsl(r, g, b);
+    const hueDeg = h * 360;
 
-    // 1. Muy oscuro: etiqueta SAHAR, herrajes negros, cadenas oscuras
-    if (l < 0.22) return true;
+    // 1. Muy oscuro: herrajes negros, cadenas oscuras, textos negros
+    if (l < 0.20) return true;
 
-    // 2. Muy desaturado: fondo blanco/gris, perlas, plateados, herrajes cromados
+    // 2. Muy desaturado: blanco puro, gris, plateado, cromados, perlas
     if (s < 0.10) return true;
 
-    // 3. Oscuro y poco saturado: textos negros, sombras profundas
-    if (l < 0.32 && s < 0.25) return true;
+    // 3. Oscuro y poco saturado: sombras profundas, textos negros
+    if (l < 0.35 && s < 0.30) return true;
 
-    // 4. Dorado / bronce / cobre metálico (con reflejos y brillos)
-    if (h >= 20 / 360 && h <= 80 / 360 && s > 0.18 && l > 0.32 && l < 0.92) return true;
+    // 4. Metálicos cálidos (dorado, bronce, cobre, champagne):
+    //    - Hue cálido entre 15° (cobre) y 90° (amarillo dorado)
+    //    - Saturación significativa
+    //    - Fuerte dominancia de R sobre B → clave para distinguir
+    //      del tejido crema (donde R y B son similares)
+    //    - Luminosidad amplia (permite brillos y sombras del metal)
+    if (hueDeg >= 15 && hueDeg <= 90 && s > 0.30 && (r - b) > 45) return true;
 
     return false;
   }
