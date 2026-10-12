@@ -280,3 +280,64 @@ footer p { font-size: 0.9rem; color: #aaa; margin-bottom: 25px; }
     position: relative;
 }
 [hidden] { display: none !important; }
+
+/* =========================================================
+   Mobile UX: canvas sticky en el personalizador
+   El preview queda fijo arriba mientras el usuario ajusta
+   colores debajo. Solo aplica a pantallas < 768px.
+   ========================================================= */
+@media (max-width: 767px) {
+
+    /* Reducir el padding superior de la sección para que el
+       canvas llegue antes a la zona sticky */
+    .customizer {
+        padding-top: 50px;
+        padding-bottom: 40px;
+    }
+
+    /* Contenedor sin gap: el canvas-wrapper tiene su propio margen */
+    .customizer-container {
+        gap: 0;
+    }
+
+    /* El canvas-wrapper se vuelve sticky debajo del header */
+    .canvas-wrapper {
+        position: sticky;
+        top: 80px;                      /* debajo del header (logo 55px) */
+        z-index: 50;
+        width: 100%;
+        max-width: 100%;
+        min-height: auto;
+        max-height: 45vh;
+        padding: 10px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.98);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
+        transition: box-shadow 0.3s ease;
+    }
+
+    /* El canvas se limita por altura para no comerse la pantalla */
+    #bag-canvas {
+        max-height: 42vh;
+        width: auto;
+        max-width: 100%;
+    }
+
+    /* Separación entre el canvas sticky y los controles */
+    .customizer-controls {
+        margin-top: 24px;
+        padding-bottom: 20px;
+    }
+}
+
+/* Ajuste fino: en pantallas muy pequeñas el header es más bajo */
+@media (max-width: 600px) {
+    .canvas-wrapper {
+        top: 72px;                      /* debajo del header (logo 45px) */
+    }
+    #bag-canvas {
+        max-height: 38vh;
+    }
+}
