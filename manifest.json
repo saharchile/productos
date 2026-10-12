@@ -1,0 +1,24 @@
+{
+  "name": "Sahar - Carteras Tejidas a Mano",
+  "short_name": "Sahar",
+  "description": "Carteras tejidas a mano con diseño exclusivo. Personaliza la tuya.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a1a",
+  "lang": "es-CL",
+  "icons": [
+    {
+      "src": "imagenes/logo/Logo1.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "imagenes/logo/Logo1.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
