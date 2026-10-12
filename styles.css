@@ -241,3 +241,42 @@ footer p { font-size: 0.9rem; color: #aaa; margin-bottom: 25px; }
 }
 /* Asegura que [hidden] oculte el segundo selector de Lumina */
 [hidden] { display: none !important; }
+/* Overlay de SAM para selección interactiva */
+#sam-overlay {
+    cursor: crosshair;
+    z-index: 10;
+    display: none;
+}
+#sam-overlay.active {
+    display: block;
+}
+#sam-status {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.75);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    z-index: 20;
+    display: none;
+    white-space: nowrap;
+}
+#sam-status.visible {
+    display: block;
+}
+#sam-points {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 15;
+}
+#canvas-wrapper {
+    position: relative;
+}
+[hidden] { display: none !important; }
