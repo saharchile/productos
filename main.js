@@ -1,8 +1,8 @@
 /* =========================================================
-   Sahar - main.js (v8)
-   - Usa data-mask para cargar la máscara (evita problema con tildes)
-   - Limpia la máscara anterior al cargar un nuevo modelo
-   - Verifica alpha en la máscara (compatibilidad con PNG transparentes)
+   Sahar - main.js (v9)
+   - Ajuste de máscaras por modelo (scale + offset)
+   - Detección de alpha para máscaras transparentes
+   - Limpieza de máscara al cambiar de modelo
    ========================================================= */
 
 (() => {
@@ -28,6 +28,20 @@
 
   const TELEFONO = "56927572626";
   const MASK_BASE = 'imagenes/modelos/masks/';
+
+  /* ---------------------------------------------------------
+     CONFIGURACIÓN DE AJUSTE POR MODELO
+     - scale: > 1 agranda la máscara, < 1 la achica
+     - offsetX: desplaza a la derecha (+) o izquierda (−) en px
+     - offsetY: desplaza hacia abajo (+) o arriba (−) en px
+     --------------------------------------------------------- */
+  const MASK_CONFIG = {
+    Alba:   { scale: 1.00, offsetX: 0, offsetY: 0 },
+    Aurora: { scale: 1.00, offsetX: 0, offsetY: 0 },
+    Rocio:  { scale: 1.10, offsetX: 0, offsetY: 0 },
+    Bruma:  { scale: 1.00, offsetX: 0, offsetY: 0 },
+    Lumina: { scale: 1.00, offsetX: 0, offsetY: 0 }
+  };
 
   let originalImageData = null;
   let currentMaskData   = null;
@@ -86,7 +100,6 @@
   function loadBagImage(src, maskName) {
     canvas.classList.add('loading');
 
-    // ✅ FIX: limpiar la máscara anterior para no reutilizarla si falla la nueva
     currentMaskData = null;
 
     const img = new Image();
@@ -115,11 +128,20 @@
         console.error('Error leyendo imagen:', e);
       }
 
+      // Dibujar máscara con ajuste por modelo
+      const cfg = MASK_CONFIG[maskName] || { scale: 1, offsetX: 0, offsetY: 0 };
+
       const maskCanvas = document.createElement('canvas');
       maskCanvas.width  = canvas.width;
       maskCanvas.height = canvas.height;
       const maskCtx = maskCanvas.getContext('2d');
-      maskCtx.drawImage(maskImg, 0, 0, canvas.width, canvas.height);
+
+      const mw = canvas.width  * cfg.scale;
+      const mh = canvas.height * cfg.scale;
+      const mx = (canvas.width  - mw) / 2 + cfg.offsetX;
+      const my = (canvas.height - mh) / 2 + cfg.offsetY;
+      maskCtx.drawImage(maskImg, mx, my, mw, mh);
+
       currentMaskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height);
 
       applyColor();
@@ -164,7 +186,7 @@
     const w = canvas.width, h = canvas.height;
     const maskData = currentMaskData ? currentMaskData.data : null;
 
-    // Promedios de luminosidad por zona (solo sobre tejido de la máscara)
+    // Promedios de luminosidad por zona
     let sumL1 = 0, cnt1 = 0, sumL2 = 0, cnt2 = 0;
     if (maskData) {
       for (let i = 0; i < src.length; i += 4) {
@@ -182,7 +204,6 @@
     for (let i = 0; i < src.length; i += 4) {
       const r = src[i], g = src[i+1], b = src[i+2];
 
-      // Pintar solo si la máscara es opaca Y blanca
       const paint = !maskData || (maskData[i + 3] > 128 && maskData[i] > 128);
 
       if (!paint) {
@@ -238,7 +259,6 @@
   modelSelect.addEventListener('change', () => {
     const opt = modelSelect.options[modelSelect.selectedIndex];
     currentModel = opt.value;
-    // ✅ FIX: usar data-mask para la ruta (sin tildes)
     const maskName = opt.getAttribute('data-mask') || opt.value;
     const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
     priceDisplay.textContent = `Precio base: $${price}`;
