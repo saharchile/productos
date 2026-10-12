@@ -1,7 +1,8 @@
 /* =========================================================
-   Sahar - main.js (v6)
+   Sahar - main.js (v7)
    Recoloreado con máscaras pre-computadas (PNG)
-   Sin IA en el navegador, sin esperas, 100% confiable
+   - Soporta máscaras con fondo transparente O negro
+   - Fuerza alpha=255 en la salida para evitar tableros
    ========================================================= */
 
 (() => {
@@ -10,7 +11,6 @@
   const yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  /* -------------------- Elementos ----------------------- */
   const canvas = document.getElementById('bag-canvas');
   if (!canvas) return;
 
@@ -27,12 +27,10 @@
   const btnQuote         = document.getElementById('btn-quote');
 
   const TELEFONO = "56927572626";
-
   const MASK_BASE = 'imagenes/modelos/masks/';
 
-  /* -------------------- Estado -------------------------- */
   let originalImageData = null;
-  let currentMaskData   = null;   // ImageData de la máscara
+  let currentMaskData   = null;
   let currentModel      = null;
 
   /* -------------------- Conversión ---------------------- */
@@ -114,7 +112,6 @@
         console.error('Error leyendo imagen:', e);
       }
 
-      // Leer máscara (redimensionada al tamaño del canvas)
       const maskCanvas = document.createElement('canvas');
       maskCanvas.width  = canvas.width;
       maskCanvas.height = canvas.height;
@@ -135,7 +132,6 @@
     };
     maskImg.onerror = () => {
       console.error('No se pudo cargar la máscara:', maskSrc);
-      // Si no hay máscara, dejamos la imagen original sin recolorear
       imgLoaded = true; maskLoaded = true;
       tryReady();
     };
@@ -168,7 +164,10 @@
     // Promedios por zona (para normalizar luminosidad)
     let sumL1 = 0, cnt1 = 0, sumL2 = 0, cnt2 = 0;
     for (let i = 0; i < src.length; i += 4) {
-      if (!maskData || maskData[i] < 128) continue;
+      if (!maskData) break;
+      // ✅ NUEVO: también verificar alpha para ignorar transparentes
+      const isOpaqueWhite = maskData[i + 3] > 128 && maskData[i] > 128;
+      if (!isOpaqueWhite) continue;
       const r = src[i], g = src[i+1], b = src[i+2];
       const l = (Math.max(r,g,b) + Math.min(r,g,b)) / 510;
       if (isLumina && l < 0.5) { sumL2 += l; cnt2++; }
@@ -178,17 +177,17 @@
     const avgL2 = cnt2 > 0 ? sumL2 / cnt2 : 0.35;
 
     for (let i = 0; i < src.length; i += 4) {
-      const r = src[i], g = src[i+1], b = src[i+2], a = src[i+3];
+      const r = src[i], g = src[i+1], b = src[i+2];
 
-      // Máscara: blanco = pintar, negro = preservar
-      const paint = !maskData || maskData[i] > 128;
+      // ✅ FIX PRINCIPAL: pintar solo si el píxel de la máscara es opaco Y blanco
+      const paint = !maskData || (maskData[i + 3] > 128 && maskData[i] > 128);
 
       if (!paint) {
-        out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
+        // Preservar pixel original, forzando alpha opaco
+        out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = 255;
         continue;
       }
 
-      // Elegir color objetivo y referencia
       let targetH = AH, targetS = AS, targetL = AL, achrom = isAchromatic;
       let refAvg = avgL1;
 
@@ -203,12 +202,12 @@
 
       if (achrom) {
         const v = Math.round(newL * 255);
-        out[i] = v; out[i+1] = v; out[i+2] = v; out[i+3] = a;
+        out[i] = v; out[i+1] = v; out[i+2] = v; out[i+3] = 255;
       } else {
         const [, s0] = rgbToHsl(r, g, b);
         const newS = Math.min(1, targetS * 0.85 + s0 * 0.15);
         const [nr, ng, nb] = hslToRgb(targetH, newS, newL);
-        out[i] = nr; out[i+1] = ng; out[i+2] = nb; out[i+3] = a;
+        out[i] = nr; out[i+1] = ng; out[i+2] = nb; out[i+3] = 255;
       }
     }
 
