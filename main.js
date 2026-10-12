@@ -1,8 +1,8 @@
 /* =========================================================
-   Sahar - main.js (v9)
-   - Ajuste de máscaras por modelo (scale + offset)
+   Sahar - main.js (v10)
+   - Ajuste de máscaras con scaleX/scaleY independientes
+   - Fallback seguro si falta config de un modelo
    - Detección de alpha para máscaras transparentes
-   - Limpieza de máscara al cambiar de modelo
    ========================================================= */
 
 (() => {
@@ -31,17 +31,20 @@
 
   /* ---------------------------------------------------------
      CONFIGURACIÓN DE AJUSTE POR MODELO
-     - scale: > 1 agranda la máscara, < 1 la achica
-     - offsetX: desplaza a la derecha (+) o izquierda (−) en px
-     - offsetY: desplaza hacia abajo (+) o arriba (−) en px
+     - scaleX: estira horizontal (>1 más ancho, <1 más angosto)
+     - scaleY: estira vertical (>1 más alto, <1 más bajo)
+     - offsetX: desplaza derecha (+) o izquierda (−) en px
+     - offsetY: desplaza abajo (+) o arriba (−) en px
      --------------------------------------------------------- */
   const MASK_CONFIG = {
-    Alba:   { scale: 1.00, offsetX: 0, offsetY: 0 },
-    Aurora: { scale: 1.00, offsetX: 0, offsetY: 0 },
-    Rocio:  { scaleX: 1.15, scaleY: 1.00, offsetX: 0, offsetY: 0 },  // ← ajusta estos
-    Bruma:  { scaleX: 1.25, scaleY: 1.00, offsetX: 0, offsetY: 0 },  // ← ajusta estos
+    Alba:   { scaleX: 1.00, scaleY: 1.00, offsetX: 0, offsetY: 0 },
+    Aurora: { scaleX: 1.00, scaleY: 1.00, offsetX: 0, offsetY: 0 },
+    Rocio:  { scaleX: 1.15, scaleY: 1.00, offsetX: 0, offsetY: 0 },
+    Bruma:  { scaleX: 1.25, scaleY: 1.00, offsetX: 0, offsetY: 0 },
     Lumina: { scaleX: 1.20, scaleY: 1.00, offsetX: 0, offsetY: 0 }
   };
+
+  const DEFAULT_MASK_CFG = { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0 };
 
   let originalImageData = null;
   let currentMaskData   = null;
@@ -128,18 +131,23 @@
         console.error('Error leyendo imagen:', e);
       }
 
-      // Dibujar máscara con ajuste por modelo
-      const cfg = MASK_CONFIG[maskName] || { scale: 1, offsetX: 0, offsetY: 0 };
+      // ✅ Config con fallback seguro (evita NaN)
+      const cfg = MASK_CONFIG[maskName] || DEFAULT_MASK_CFG;
+      const sx = (typeof cfg.scaleX === 'number') ? cfg.scaleX : 1;
+      const sy = (typeof cfg.scaleY === 'number') ? cfg.scaleY : 1;
+      const ox = (typeof cfg.offsetX === 'number') ? cfg.offsetX : 0;
+      const oy = (typeof cfg.offsetY === 'number') ? cfg.offsetY : 0;
 
       const maskCanvas = document.createElement('canvas');
       maskCanvas.width  = canvas.width;
       maskCanvas.height = canvas.height;
       const maskCtx = maskCanvas.getContext('2d');
 
-      const mw = canvas.width  * cfg.scale;
-      const mh = canvas.height * cfg.scale;
-      const mx = (canvas.width  - mw) / 2 + cfg.offsetX;
-      const my = (canvas.height - mh) / 2 + cfg.offsetY;
+      const mw = canvas.width  * sx;
+      const mh = canvas.height * sy;
+      const mx = (canvas.width  - mw) / 2 + ox;
+      const my = (canvas.height - mh) / 2 + oy;
+
       maskCtx.drawImage(maskImg, mx, my, mw, mh);
 
       currentMaskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height);
