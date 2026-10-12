@@ -1,8 +1,7 @@
 /* =========================================================
    Sahar - main.js (v10)
-   - Ajuste de máscaras con scaleX/scaleY independientes
-   - Fallback seguro si falta config de un modelo
-   - Detección de alpha para máscaras transparentes
+   - Ajuste de máscaras con scaleX/scaleY
+   - MASK_CONFIG y loadBagImage expuestos a window (para debug)
    ========================================================= */
 
 (() => {
@@ -31,10 +30,6 @@
 
   /* ---------------------------------------------------------
      CONFIGURACIÓN DE AJUSTE POR MODELO
-     - scaleX: estira horizontal (>1 más ancho, <1 más angosto)
-     - scaleY: estira vertical (>1 más alto, <1 más bajo)
-     - offsetX: desplaza derecha (+) o izquierda (−) en px
-     - offsetY: desplaza abajo (+) o arriba (−) en px
      --------------------------------------------------------- */
   const MASK_CONFIG = {
     Alba:   { scaleX: 1.00, scaleY: 1.00, offsetX: 0, offsetY: 0 },
@@ -45,6 +40,9 @@
   };
 
   const DEFAULT_MASK_CFG = { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0 };
+
+  // ✅ Exponer MASK_CONFIG para poder ajustarlo en vivo desde la consola
+  window.MASK_CONFIG = MASK_CONFIG;
 
   let originalImageData = null;
   let currentMaskData   = null;
@@ -131,7 +129,6 @@
         console.error('Error leyendo imagen:', e);
       }
 
-      // ✅ Config con fallback seguro (evita NaN)
       const cfg = MASK_CONFIG[maskName] || DEFAULT_MASK_CFG;
       const sx = (typeof cfg.scaleX === 'number') ? cfg.scaleX : 1;
       const sy = (typeof cfg.scaleY === 'number') ? cfg.scaleY : 1;
@@ -194,7 +191,6 @@
     const w = canvas.width, h = canvas.height;
     const maskData = currentMaskData ? currentMaskData.data : null;
 
-    // Promedios de luminosidad por zona
     let sumL1 = 0, cnt1 = 0, sumL2 = 0, cnt2 = 0;
     if (maskData) {
       for (let i = 0; i < src.length; i += 4) {
@@ -317,6 +313,9 @@
     const mensaje = `Hola Sahar! 👋 Me encantaría cotizar una cartera personalizada.%0A%0A📌 *Modelo:* ${modelo}%0A🎨 *Color elegido:* ${color}%0A💰 *Precio base:* $${price}%0A%0A¿Me pueden ayudar con el valor final y tiempo de confección?`;
     window.open(`https://wa.me/${TELEFONO}?text=${mensaje}`, '_blank', 'noopener,noreferrer');
   });
+
+  // ✅ Exponer loadBagImage para poder recargar la máscara desde la consola
+  window.loadBagImage = loadBagImage;
 
   /* -------------------- Init ---------------------------- */
   const firstOpt = modelSelect.options[0];
