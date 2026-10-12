@@ -1,247 +1,269 @@
 /* =========================================================
    Sahar - main.js
-   Mejoras: modularidad, rendimiento con Web Worker,
-   accesibilidad del canvas, PWA, menú móvil.
+   Lógica original del personalizador (flood fill + reglas
+   de preservación de herrajes/logo/perlas). Solo se
+   externalizó y se cambió onclick por addEventListener.
    ========================================================= */
 
 (() => {
   'use strict';
 
-  /* -------------------- Año dinámico -------------------- */
+  /* -------------------- Año dinámico (opcional) ---------- */
   const yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  /* -------------------- Menú móvil ---------------------- */
-  const navToggle = document.querySelector('.nav-toggle');
-  const mainNav = document.getElementById('main-nav');
-  if (navToggle && mainNav) {
-    navToggle.addEventListener('click', () => {
-      const isOpen = mainNav.dataset.open === 'true';
-      mainNav.dataset.open = String(!isOpen);
-      navToggle.setAttribute('aria-expanded', String(!isOpen));
-    });
-    // Cierra al hacer click en un enlace
-    mainNav.addEventListener('click', (e) => {
-      if (e.target.tagName === 'A') {
-        mainNav.dataset.open = 'false';
-        navToggle.setAttribute('aria-expanded', 'false');
-      }
-    });
-  }
-
-  /* -------------------- Personalizador ------------------ */
-  const canvas = document.getElementById('canvas-preview');
+  /* -------------------- Personalizador ------------------- */
+  const canvas = document.getElementById('bag-canvas');
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  const selectModelo = document.getElementById('modelo');
-  const inputColor = document.getElementById('color');
-  const priceDisplay = document.getElementById('price-display');
-  const btnWhatsapp = document.getElementById('btn-whatsapp');
+  const modelSelect = document.getElementById('model-select');
+  const colorPicker = document.getElementById('color-picker');
+  const colorHex = document.getElementById('color-hex');
+  const priceDisplay = document.getElementById('selected-price');
+  const btnQuote = document.getElementById('btn-quote');
 
-  const IMG_BASE = 'imagenes/modelos/creatusahar/';
-  const WHATSAPP_NUMBER = '56900000000';
+  const TELEFONO = "56927572626";
 
   let originalImageData = null;
-  let backgroundMask = null;
-  let currentImageLoaded = false;
-  let recolorTimeout = null;
+  let backgroundMask = null; // 1 = fondo protegido
 
-  /* -------------------- Web Worker ---------------------- */
-  const worker = createRecolorWorker();
-
-  function createRecolorWorker() {
-    const code = `
-      self.onmessage = function (e) {
-        const { imageData, backgroundMask, targetHex } = e.data;
-        const data = new Uint8ClampedArray(imageData.data);
-        const [tr, tg, tb] = hexToRgb(targetHex);
-        const [th, ts, tl] = rgbToHsl(tr, tg, tb);
-
-        const len = data.length;
-        for (let i = 0; i < len; i += 4) {
-          const px = i / 4;
-          if (!backgroundMask[px]) continue;
-
-          const r = data[i], g = data[i + 1], b = data[i + 2];
-          const [h, s, l] = rgbToHsl(r, g, b);
-
-          // Conserva textura: mezcla saturación/luminosidad originales con el tono nuevo
-          const newS = Math.min(1, s * 0.7 + ts * 0.4);
-          const newL = Math.max(0.05, Math.min(0.95, l * 0.75 + tl * 0.3));
-          const [nr, ng, nb] = hslToRgb(th, newS, newL);
-
-          data[i] = nr;
-          data[i + 1] = ng;
-          data[i + 2] = nb;
-        }
-
-        self.postMessage({ data }, [data.buffer]);
-      };
-
-      function hexToRgb(hex) {
-        const h = hex.replace('#','');
-        return [
-          parseInt(h.substring(0,2),16),
-          parseInt(h.substring(2,4),16),
-          parseInt(h.substring(4,6),16)
-        ];
-      }
-      function rgbToHsl(r, g, b) {
-        r/=255; g/=255; b/=255;
-        const max = Math.max(r,g,b), min = Math.min(r,g,b);
-        let h, s, l = (max+min)/2;
-        if (max === min) { h = s = 0; }
-        else {
-          const d = max - min;
-          s = l > 0.5 ? d/(2-max-min) : d/(max+min);
-          switch (max) {
-            case r: h = (g-b)/d + (g<b?6:0); break;
-            case g: h = (b-r)/d + 2; break;
-            default: h = (r-g)/d + 4;
-          }
-          h /= 6;
-        }
-        return [h, s, l];
-      }
-      function hslToRgb(h, s, l) {
-        let r, g, b;
-        if (s === 0) { r = g = b = l; }
-        else {
-          const hue2rgb = (p,q,t) => {
-            if (t<0) t+=1; if (t>1) t-=1;
-            if (t<1/6) return p+(q-p)*6*t;
-            if (t<1/2) return q;
-            if (t<2/3) return p+(q-p)*(2/3-t)*6;
-            return p;
-          };
-          const q = l < 0.5 ? l*(1+s) : l+s-l*s;
-          const p = 2*l - q;
-          r = hue2rgb(p,q,h+1/3);
-          g = hue2rgb(p,q,h);
-          b = hue2rgb(p,q,h-1/3);
-        }
-        return [Math.round(r*255), Math.round(g*255), Math.round(b*255)];
-      }
-    `;
-    const blob = new Blob([code], { type: 'application/javascript' });
-    return new Worker(URL.createObjectURL(blob));
+  /* -------------------- Conversión de color -------------- */
+  function hexToRgb(hex) {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    return [
+      parseInt(hex.substr(0, 2), 16),
+      parseInt(hex.substr(2, 2), 16),
+      parseInt(hex.substr(4, 2), 16)
+    ];
   }
 
-  worker.onmessage = (e) => {
-    ctx.putImageData(new ImageData(new Uint8ClampedArray(e.data.data), canvas.width, canvas.height), 0, 0);
-  };
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min) { h = s = 0; }
+    else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+    return [h, s, l];
+  }
 
-  /* -------------------- Carga de imagen ----------------- */
-  function loadModel(modelName) {
+  function hslToRgb(h, s, l) {
+    let r, g, b;
+    if (s === 0) { r = g = b = l; }
+    else {
+      const hue2rgb = (p, q, t) => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+        return p;
+      };
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1 / 3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1 / 3);
+    }
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+  }
+
+  /* -------- Reglas de preservación automática ------------ */
+  // Devuelve true si el píxel NO debe pintarse
+  // (herrajes, logo, perlas, etc.)
+  function shouldPreservePixel(r, g, b) {
+    const [h, s, l] = rgbToHsl(r, g, b);
+
+    // 1. Muy oscuro: etiqueta SAHAR, herrajes negros, cadenas oscuras
+    if (l < 0.22) return true;
+
+    // 2. Muy desaturado: fondo blanco/gris, perlas, plateados, herrajes cromados
+    if (s < 0.10) return true;
+
+    // 3. Oscuro y poco saturado: textos negros, sombras profundas
+    if (l < 0.32 && s < 0.25) return true;
+
+    // 4. Dorado / bronce / cobre metálico (con reflejos y brillos)
+    if (h >= 20 / 360 && h <= 80 / 360 && s > 0.18 && l > 0.32 && l < 0.92) return true;
+
+    return false;
+  }
+
+  /* ---------- Flood fill para detectar el fondo ---------- */
+  function floodFillBackground(startX, startY, tolerance) {
+    const w = canvas.width, h = canvas.height;
+    const data = originalImageData.data;
+    const startIdx = (startY * w + startX) * 4;
+    const sr = data[startIdx], sg = data[startIdx + 1], sb = data[startIdx + 2];
+
+    const visited = new Uint8Array(w * h);
+    const queue = [startY * w + startX];
+    visited[startY * w + startX] = 1;
+
+    let head = 0;
+    while (head < queue.length) {
+      const pos = queue[head++];
+      backgroundMask[pos] = 1;
+
+      const x = pos % w;
+      const y = (pos - x) / w;
+      const neighbors = [
+        x > 0     ? pos - 1 : -1,
+        x < w - 1 ? pos + 1 : -1,
+        y > 0     ? pos - w : -1,
+        y < h - 1 ? pos + w : -1
+      ];
+
+      for (const np of neighbors) {
+        if (np < 0 || visited[np]) continue;
+        const idx = np * 4;
+        const dr = data[idx] - sr;
+        const dg = data[idx + 1] - sg;
+        const db = data[idx + 2] - sb;
+        const dist = Math.sqrt(dr * dr + dg * dg + db * db);
+        if (dist < tolerance) {
+          visited[np] = 1;
+          queue.push(np);
+        }
+      }
+    }
+  }
+
+  function detectBackground() {
+    const w = canvas.width, h = canvas.height;
+    const tol = 32;
+    const corners = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]];
+    corners.forEach(([x, y]) => {
+      if (x < 0 || x >= w || y < 0 || y >= h) return;
+      if (backgroundMask[y * w + x]) return;
+      floodFillBackground(x, y, tol);
+    });
+  }
+
+  /* ------------------ Cargar imagen ---------------------- */
+  function loadBagImage(src) {
+    canvas.classList.add('loading');
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
       const MAX = 500;
-      const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
-      canvas.width = Math.round(img.width * ratio);
-      canvas.height = Math.round(img.height * ratio);
+      const scale = Math.min(MAX / img.naturalWidth, MAX / img.naturalHeight, 1);
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      backgroundMask = buildBackgroundMask(originalImageData);
-      currentImageLoaded = true;
-
-      applyColor(inputColor.value);
-      updateCanvasLabel();
+      try {
+        originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        backgroundMask = new Uint8Array(canvas.width * canvas.height);
+        detectBackground();
+        applyColor();
+      } catch (e) {
+        console.error('Error leyendo la imagen:', e);
+      }
+      canvas.classList.remove('loading');
     };
     img.onerror = () => {
-      console.warn('No se pudo cargar la imagen:', modelName);
+      console.error('No se pudo cargar la imagen:', src);
+      canvas.classList.remove('loading');
     };
-    img.src = `${IMG_BASE}${modelName}.webp`;
+    img.src = src;
   }
 
-  /* -------------------- Flood fill optimizado ----------- */
-  function buildBackgroundMask(imageData) {
-    const { width, height, data } = imageData;
-    const mask = new Uint8Array(width * height);
-    const tolerance = 30;
+  /* ------------------ Recolorear píxeles ----------------- */
+  function applyColor() {
+    if (!originalImageData || !backgroundMask) return;
 
-    const seed = (x, y) => [data[(y * width + x) * 4], data[(y * width + x) * 4 + 1], data[(y * width + x) * 4 + 2]];
-    const seeds = [[0,0],[width-1,0],[0,height-1],[width-1,height-1]];
+    const [tr, tg, tb] = hexToRgb(colorPicker.value);
+    const [targetH, targetS, targetL] = rgbToHsl(tr, tg, tb);
 
-    for (const [sx, sy] of seeds) {
-      const [sr, sg, sb] = seed(sx, sy);
-      const stack = [sy * width + sx];
-      while (stack.length) {
-        const idx = stack.pop();
-        if (mask[idx]) continue;
-        const x = idx % width;
-        const y = (idx - x) / width;
-        const p = idx * 4;
-        const dr = data[p] - sr, dg = data[p+1] - sg, db = data[p+2] - sb;
-        if (Math.sqrt(dr*dr + dg*dg + db*db) > tolerance) continue;
+    const src = originalImageData.data;
+    const out = new Uint8ClampedArray(src.length);
+    const w = canvas.width;
 
-        mask[idx] = 1;
-        if (x > 0) stack.push(idx - 1);
-        if (x < width - 1) stack.push(idx + 1);
-        if (y > 0) stack.push(idx - width);
-        if (y < height - 1) stack.push(idx + width);
+    for (let i = 0; i < src.length; i += 4) {
+      const px = (i / 4) % w;
+      const py = Math.floor((i / 4) / w);
+      const r = src[i], g = src[i + 1], b = src[i + 2], a = src[i + 3];
+
+      // 1) Protección de fondo detectado
+      if (backgroundMask[py * w + px]) {
+        out[i] = r; out[i + 1] = g; out[i + 2] = b; out[i + 3] = a;
+        continue;
       }
-    }
-    return mask;
-  }
 
-  /* -------------------- Aplicar color ------------------- */
-  function applyColor(hex) {
-    if (!currentImageLoaded || !originalImageData || !backgroundMask) return;
-    // Debounce para no saturar el worker
-    clearTimeout(recolorTimeout);
-    recolorTimeout = setTimeout(() => {
-      worker.postMessage({
-        imageData: { width: canvas.width, height: canvas.height, data: originalImageData.data },
-        backgroundMask,
-        targetHex: hex
-      });
-    }, 60);
+      // 2) Protección automática (herrajes, logo, perlas)
+      if (shouldPreservePixel(r, g, b)) {
+        out[i] = r; out[i + 1] = g; out[i + 2] = b; out[i + 3] = a;
+        continue;
+      }
+
+      // 3) Recolorear
+      const [h, s, l] = rgbToHsl(r, g, b);
+      const newS = Math.min(1, targetS * 0.85 + s * 0.15);
+      const lShift = (targetL - 0.5) * 0.6;
+      const newL = Math.max(0.05, Math.min(0.95, l + lShift));
+      const [nr, ng, nb] = hslToRgb(targetH, newS, newL);
+      out[i] = nr; out[i + 1] = ng; out[i + 2] = nb; out[i + 3] = a;
+    }
+
+    ctx.putImageData(new ImageData(out, w, canvas.height), 0, 0);
     updateCanvasLabel();
   }
 
-  /* -------------------- Accesibilidad canvas ------------ */
+  /* -------- Accesibilidad: label dinámico del canvas ----- */
   function updateCanvasLabel() {
-    const modelo = selectModelo.options[selectModelo.selectedIndex].text;
-    const color = inputColor.value;
-    canvas.setAttribute(
-      'aria-label',
-      `Vista previa del modelo ${modelo} en color ${color}`
-    );
+    const modelo = modelSelect.options[modelSelect.selectedIndex].text;
+    const color = colorPicker.value.toUpperCase();
+    canvas.setAttribute('aria-label', `Vista previa del modelo ${modelo} en color ${color}`);
   }
 
-  /* -------------------- Precio ------------------------- */
-  function updatePrice() {
-    const opt = selectModelo.options[selectModelo.selectedIndex];
-    const price = Number(opt.dataset.price || 0);
-    priceDisplay.textContent = '$' + price.toLocaleString('es-CL');
-    return price;
-  }
-
-  /* -------------------- Eventos ------------------------ */
-  selectModelo.addEventListener('change', () => {
-    loadModel(selectModelo.value);
-    updatePrice();
+  /* -------------------- Eventos -------------------------- */
+  modelSelect.addEventListener('change', () => {
+    const opt = modelSelect.options[modelSelect.selectedIndex];
+    const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
+    priceDisplay.textContent = `Precio base: $${price}`;
+    loadBagImage(opt.getAttribute('data-img'));
   });
 
-  inputColor.addEventListener('input', (e) => applyColor(e.target.value));
-
-  btnWhatsapp.addEventListener('click', () => {
-    const modelo = selectModelo.options[selectModelo.selectedIndex].text;
-    const color = inputColor.value;
-    const price = Number(selectModelo.options[selectModelo.selectedIndex].dataset.price || 0);
-    const msg = `¡Hola Sahar! Quiero pedir una cartera:\n\n• Modelo: ${modelo}\n• Color: ${color}\n• Precio: $${price.toLocaleString('es-CL')}\n\n¿Me confirman disponibilidad?`;
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+  colorPicker.addEventListener('input', () => {
+    colorHex.textContent = colorPicker.value.toUpperCase();
+    applyColor();
   });
 
-  /* -------------------- Init --------------------------- */
-  updatePrice();
-  loadModel(selectModelo.value);
+  document.querySelectorAll('.color-preset').forEach(el => {
+    el.addEventListener('click', () => {
+      const c = el.getAttribute('data-color');
+      colorPicker.value = c;
+      colorHex.textContent = c.toUpperCase();
+      applyColor();
+    });
+  });
 
-  /* -------------------- PWA ---------------------------- */
+  btnQuote.addEventListener('click', () => {
+    const modelo = modelSelect.value;
+    const opt = modelSelect.options[modelSelect.selectedIndex];
+    const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
+    const color = colorHex.textContent;
+    const mensaje = `Hola Sahar! 👋 Me encantaría cotizar una cartera personalizada.%0A%0A📌 *Modelo:* ${modelo}%0A🎨 *Color elegido:* ${color}%0A💰 *Precio base:* $${price}%0A%0A¿Me pueden ayudar con el valor final y tiempo de confección?`;
+    window.open(`https://wa.me/${TELEFONO}?text=${mensaje}`, '_blank', 'noopener,noreferrer');
+  });
+
+  /* -------------------- Init ----------------------------- */
+  const firstOpt = modelSelect.options[0];
+  priceDisplay.textContent = `Precio base: $${parseInt(firstOpt.getAttribute('data-price')).toLocaleString('es-CL')}`;
+  loadBagImage(firstOpt.getAttribute('data-img'));
+
+  /* -------------------- PWA ------------------------------ */
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js').catch(() => {});
