@@ -34,9 +34,9 @@
   const MASK_CONFIG = {
     Alba:   { scaleX: 1.00, scaleY: 1.00, offsetX: 0, offsetY: 0 },
     Aurora: { scaleX: 1.00, scaleY: 1.00, offsetX: 0, offsetY: 0 },
-    Rocio:  { scaleX: 1.15, scaleY: 1.00, offsetX: 0, offsetY: 0 },
-    Bruma:  { scaleX: 1.25, scaleY: 1.00, offsetX: 0, offsetY: 0 },
-    Lumina: { scaleX: 1.20, scaleY: 1.00, offsetX: 0, offsetY: 0 }
+    Rocio:  { scaleX: 1.00, scaleY: 1.15, offsetX: 0, offsetY: 0 },
+    Bruma:  { scaleX: 1.38, scaleY: 1.00, offsetX: 0, offsetY: 0 },
+    Lumina: { scaleX: 1.38, scaleY: 1.00, offsetX: 0, offsetY: 0 }
   };
 
   const DEFAULT_MASK_CFG = { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0 };
