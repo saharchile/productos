@@ -1,9 +1,8 @@
 /* =========================================================
-   Sahar - main.js  (v4 profesional)
-   - Preservación estricta de metales y perlas
-   - Recoloreado con normalización de luminosidad
-   - Salida acromática para negros/blancos/grises
-   - Zonas duales para Lumina con suavizado x3
+   Sahar - main.js (v5 con SAM2)
+   - Segmentación con SAM2 vía WebGPU
+   - Recoloreado basado en máscara de IA
+   - Fallback a reglas de color si SAM no está listo
    ========================================================= */
 
 (() => {
@@ -13,10 +12,17 @@
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* -------------------- Elementos ----------------------- */
-  const canvas = document.getElementById('bag-canvas');
+  const canvas         = document.getElementById('bag-canvas');
   if (!canvas) return;
 
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const ctx            = canvas.getContext('2d', { willReadFrequently: true });
+  const overlay        = document.getElementById('sam-overlay');
+  const overlayCtx     = overlay.getContext('2d');
+  const pointsCanvas   = document.getElementById('sam-points');
+  const pointsCtx      = pointsCanvas.getContext('2d');
+  const canvasWrapper  = document.getElementById('canvas-wrapper');
+  const samStatus      = document.getElementById('sam-status');
+
   const modelSelect      = document.getElementById('model-select');
   const colorPicker      = document.getElementById('color-picker');
   const colorPicker2     = document.getElementById('color-picker-2');
@@ -31,11 +37,12 @@
 
   /* -------------------- Estado -------------------------- */
   let originalImageData = null;
-  let backgroundMask    = null;
-  let zoneMask          = null;
-  let avgL1             = 0.70;
-  let avgL2             = 0.35;
+  let samWorker         = null;
+  let samReady          = false;
+  let currentMask       = null;   // { data: Float32Array, width, height }
   let currentModel      = null;
+  let currentPoints     = [];     // puntos de clic (normalizados 0-1)
+  let currentImageBitmap= null;
 
   /* -------------------- Conversión de color ------------- */
   function hexToRgb(hex) {
@@ -86,187 +93,157 @@
     return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
   }
 
-  /* --------- Helpers: hue / saturación / luminancia ------ */
-  function getHue(r, g, b) {
+  /* -------------------- SAM Worker ---------------------- */
+  function initSAM() {
+    samWorker = new Worker('sam-worker.js');
+
+    samWorker.onmessage = (event) => {
+      const { type, stage, mask, message } = event.data;
+
+      if (type === 'progress') {
+        if (stage === 'downloading') {
+          showStatus('Cargando modelo de IA...');
+        } else if (stage === 'loading') {
+          showStatus('Preparando segmentación...');
+        }
+      }
+
+      if (type === 'ready') {
+        samReady = true;
+        hideStatus();
+        // Si ya hay una imagen cargada, segmentar
+        if (currentImageBitmap) {
+          requestSegmentation(currentImageBitmap);
+        }
+      }
+
+      if (type === 'mask') {
+        currentMask = mask;
+        applyColor(); // Reaplicar color con la máscara
+      }
+
+      if (type === 'error') {
+        console.error('SAM error:', message);
+        showStatus('Error en IA, usando método alternativo');
+        setTimeout(hideStatus, 3000);
+      }
+    };
+
+    samWorker.postMessage({ type: 'init' });
+  }
+
+  function requestSegmentation(imageBitmap) {
+    if (!samWorker || !samReady) return;
+
+    // Usar el centro de la imagen como punto inicial
+    // o el primer punto clicado por el usuario
+    const point = currentPoints.length > 0
+      ? currentPoints[0]
+      : { x: 0.5, y: 0.5 };
+
+    // Convertir ImageBitmap a ImageData para el worker
+    const offCanvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
+    const offCtx = offCanvas.getContext('2d');
+    offCtx.drawImage(imageBitmap, 0, 0);
+    const imageData = offCtx.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
+
+    samWorker.postMessage({
+      type: 'segment',
+      payload: {
+        imageData: {
+          data: imageData.data.buffer,
+          width: imageBitmap.width,
+          height: imageBitmap.height
+        },
+        point
+      }
+    });
+  }
+
+  /* -------------------- Interacción con el canvas ------- */
+  function setupCanvasInteraction() {
+    overlay.addEventListener('click', (e) => {
+      if (!samReady) {
+        showStatus('Esperando que la IA esté lista...');
+        return;
+      }
+
+      const rect = overlay.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;   // normalizado 0-1
+      const y = (e.clientY - rect.top) / rect.height;
+
+      currentPoints.push({ x, y });
+
+      // Dibujar punto visual
+      drawPoints();
+
+      // Re-segmentar con el nuevo punto
+      if (currentImageBitmap) {
+        requestSegmentation(currentImageBitmap);
+      }
+    });
+  }
+
+  function drawPoints() {
+    pointsCtx.clearRect(0, 0, pointsCanvas.width, pointsCanvas.height);
+    currentPoints.forEach((p, i) => {
+      const x = p.x * pointsCanvas.width;
+      const y = p.y * pointsCanvas.height;
+      pointsCtx.beginPath();
+      pointsCtx.arc(x, y, 6, 0, Math.PI * 2);
+      pointsCtx.fillStyle = i === 0 ? '#FF4444' : '#44FF44';
+      pointsCtx.fill();
+      pointsCtx.strokeStyle = 'white';
+      pointsCtx.lineWidth = 2;
+      pointsCtx.stroke();
+    });
+  }
+
+  function clearPoints() {
+    currentPoints = [];
+    pointsCtx.clearRect(0, 0, pointsCanvas.width, pointsCanvas.height);
+  }
+
+  /* -------------------- Status UI ----------------------- */
+  function showStatus(text) {
+    samStatus.textContent = text;
+    samStatus.classList.add('visible');
+  }
+
+  function hideStatus() {
+    samStatus.classList.remove('visible');
+  }
+
+  /* ---------- Preservación heurística (fallback) -------- */
+  function shouldPreservePixel(r, g, b) {
     const max = Math.max(r, g, b), min = Math.min(r, g, b);
     const d = max - min;
-    if (d === 0) return 0;
-    let h;
-    if (max === r) h = 60 * (((g - b) / d) % 6);
-    else if (max === g) h = 60 * ((b - r) / d + 2);
-    else h = 60 * ((r - g) / d + 4);
-    return h < 0 ? h + 360 : h;
-  }
+    const l = (max + min) / 510;
+    const s = max === 0 ? 0 : d / max;
 
-  function getSat(r, g, b) {
-    const max = Math.max(r, g, b);
-    return max === 0 ? 0 : (max - Math.min(r, g, b)) / max;
-  }
-
-  function getLum(r, g, b) {
-    return (Math.max(r, g, b) + Math.min(r, g, b)) / 510;
-  }
-
-  /* ---------- Preservación estricta ---------------------- */
-  // Solo se preserva metal REAL (dorado/plateado) y perlas.
-  // El tejido cálido (crema, beige, mostaza) NO se preserva.
-  function shouldPreservePixel(r, g, b, isLumina, zone) {
-    const l = getLum(r, g, b);
-    const s = getSat(r, g, b);
-    const h = getHue(r, g, b);
-
-    // 1) Muy oscuro: texto grabado del logo, sombras negras profundas
     if (l < 0.09) return true;
+    if (l > 0.90 && s < 0.10) return true;
 
-    // 2) Perlas: muy brillante, muy poco saturado y por encima
-    //    del promedio del tejido (evita "no pintar" tejidos blancos)
-    const refAvg = (isLumina && zone === 2) ? avgL2 : avgL1;
-    if (l > 0.90 && s < 0.10 && refAvg < 0.72 && (l - refAvg) > 0.18) return true;
+    let h = 0;
+    if (d !== 0) {
+      if (max === r) h = 60 * (((g - b) / d) % 6);
+      else if (max === g) h = 60 * ((b - r) / d + 2);
+      else h = 60 * ((r - g) / d + 4);
+      if (h < 0) h += 360;
+    }
 
-    // 3) Metal dorado brillante (oro, latón, cobre brillante)
-    //    - Hue entre 30° y 60° (amarillo-dorado)
-    //    - Saturación alta
-    //    - R−B fuerte
     if (h >= 25 && h <= 65 && s > 0.50 && (r - b) > 70 && l > 0.35) return true;
-
-    // 4) Metal plateado / cromado / acero
-    //    - Saturación prácticamente nula
-    //    - Brillo medio-alto
-    //    - Sin tinte cálido (R ≈ B)
     if (s < 0.06 && l > 0.55 && Math.abs(r - b) < 12) return true;
 
     return false;
   }
 
-  /* -------- Detección de zonas para Lumina -------------- */
-  function detectLuminaZone(r, g, b) {
-    const l = getLum(r, g, b);
-    const s = getSat(r, g, b);
-    const h = getHue(r, g, b);
-
-    // Borgoña: rojo saturado y oscuro-medio
-    if ((h >= 320 || h <= 25) && s > 0.30 && l < 0.65) return 2;
-
-    // Crema: tono cálido amarillento o beige
-    if (h >= 25 && h <= 80 && l > 0.55) return 1;
-    if (s < 0.18 && l > 0.60) return 1;
-
-    // Fallback por luminancia
-    return l > 0.55 ? 1 : 2;
-  }
-
-  /* -------- Suavizado del mapa de zonas ----------------- */
-  function smoothZones(zones, w, h, iterations) {
-    let src = zones;
-    for (let it = 0; it < iterations; it++) {
-      const out = new Uint8Array(src);
-      for (let y = 1; y < h - 1; y++) {
-        for (let x = 1; x < w - 1; x++) {
-          const i = y * w + x;
-          const ns = [i - 1, i + 1, i - w, i + w,
-                      i - w - 1, i - w + 1, i + w - 1, i + w + 1];
-          let c1 = 0, c2 = 0;
-          for (const n of ns) {
-            if (src[n] === 1) c1++;
-            else if (src[n] === 2) c2++;
-          }
-          if (c1 >= 5 && c1 > c2) out[i] = 1;
-          else if (c2 >= 5 && c2 > c1) out[i] = 2;
-        }
-      }
-      src = out;
-    }
-    return src;
-  }
-
-  /* ---------- Flood fill para detectar fondo ------------- */
-  function floodFillBackground(startX, startY, tolerance) {
-    const w = canvas.width, h = canvas.height;
-    const data = originalImageData.data;
-    const startIdx = (startY * w + startX) * 4;
-    const sr = data[startIdx], sg = data[startIdx + 1], sb = data[startIdx + 2];
-
-    const visited = new Uint8Array(w * h);
-    const queue = [startY * w + startX];
-    visited[startY * w + startX] = 1;
-
-    let head = 0;
-    while (head < queue.length) {
-      const pos = queue[head++];
-      backgroundMask[pos] = 1;
-
-      const x = pos % w;
-      const y = (pos - x) / w;
-      const neighbors = [
-        x > 0     ? pos - 1 : -1,
-        x < w - 1 ? pos + 1 : -1,
-        y > 0     ? pos - w : -1,
-        y < h - 1 ? pos + w : -1
-      ];
-
-      for (const np of neighbors) {
-        if (np < 0 || visited[np]) continue;
-        const idx = np * 4;
-        const dr = data[idx] - sr;
-        const dg = data[idx + 1] - sg;
-        const db = data[idx + 2] - sb;
-        const dist = Math.sqrt(dr * dr + dg * dg + db * db);
-        if (dist < tolerance) {
-          visited[np] = 1;
-          queue.push(np);
-        }
-      }
-    }
-  }
-
-  function detectBackground() {
-    const w = canvas.width, h = canvas.height;
-    const tol = 32;
-    const corners = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]];
-    corners.forEach(([x, y]) => {
-      if (x < 0 || x >= w || y < 0 || y >= h) return;
-      if (backgroundMask[y * w + x]) return;
-      floodFillBackground(x, y, tol);
-    });
-  }
-
-  /* -------- Estadísticas (zonas + luminosidad) ----------- */
-  function computeStats() {
-    const w = canvas.width, h = canvas.height;
-    const data = originalImageData.data;
-    const isLumina = currentModel === 'Lumina';
-
-    // 1) Zonas (Lumina) — suavizado x3 para bordes limpios
-    if (isLumina) {
-      const raw = new Uint8Array(w * h);
-      for (let i = 0; i < w * h; i++) {
-        const p = i * 4;
-        raw[i] = detectLuminaZone(data[p], data[p + 1], data[p + 2]);
-      }
-      zoneMask = smoothZones(raw, w, h, 3);
-    } else {
-      zoneMask = null;
-    }
-
-    // 2) Promedio de luminosidad por zona (fabric only)
-    let sum1 = 0, cnt1 = 0;
-    let sum2 = 0, cnt2 = 0;
-    for (let i = 0; i < w * h; i++) {
-      if (backgroundMask[i]) continue;
-      const p = i * 4;
-      const r = data[p], g = data[p + 1], b = data[p + 2];
-      const l = getLum(r, g, b);
-      const zone = zoneMask ? zoneMask[i] : 1;
-      if (zone === 2) { sum2 += l; cnt2++; }
-      else            { sum1 += l; cnt1++; }
-    }
-    avgL1 = cnt1 > 0 ? sum1 / cnt1 : 0.70;
-    avgL2 = cnt2 > 0 ? sum2 / cnt2 : 0.35;
-  }
-
   /* ------------------ Cargar imagen ---------------------- */
   function loadBagImage(src) {
     canvas.classList.add('loading');
+    clearPoints();
+    currentMask = null;
+
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
@@ -274,15 +251,29 @@
       const scale = Math.min(MAX / img.naturalWidth, MAX / img.naturalHeight, 1);
       canvas.width  = Math.round(img.naturalWidth  * scale);
       canvas.height = Math.round(img.naturalHeight * scale);
+
+      // Sincronizar overlays con el canvas
+      overlay.width = canvas.width;
+      overlay.height = canvas.height;
+      pointsCanvas.width = canvas.width;
+      pointsCanvas.height = canvas.height;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
       try {
         originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        backgroundMask    = new Uint8Array(canvas.width * canvas.height);
-        detectBackground();
-        computeStats();
         applyColor();
+
+        // Generar ImageBitmap para SAM
+        createImageBitmap(img).then((bitmap) => {
+          currentImageBitmap = bitmap;
+          if (samReady) {
+            requestSegmentation(bitmap);
+          } else {
+            showStatus('La IA está cargando, espera un momento...');
+          }
+        });
       } catch (e) {
         console.error('Error leyendo la imagen:', e);
       }
@@ -297,73 +288,81 @@
 
   /* ------------------ Recolorear píxeles ----------------- */
   function applyColor() {
-    if (!originalImageData || !backgroundMask) return;
+    if (!originalImageData) return;
 
     const isLumina = currentModel === 'Lumina';
 
-    // Objetivos (H, S, L)
     const [Ar, Ag, Ab] = hexToRgb(colorPicker.value);
     const [AH, AS, AL] = rgbToHsl(Ar, Ag, Ab);
     const isAchromatic = AS < 0.06;
 
-    let BH = AH, BS = AS, BL = AL, isAchrom2 = isAchromatic;
+    let BH = AH, BS = AS, BL = AL;
     if (isLumina && colorPicker2) {
       const [Br, Bg, Bb] = hexToRgb(colorPicker2.value);
       [BH, BS, BL] = rgbToHsl(Br, Bg, Bb);
-      isAchrom2 = BS < 0.06;
     }
 
     const src = originalImageData.data;
     const out = new Uint8ClampedArray(src.length);
     const w = canvas.width, h = canvas.height;
 
+    // Calcular luminancia promedio para fallback
+    let sumL = 0, cntL = 0;
+    if (!currentMask) {
+      for (let i = 0; i < src.length; i += 4) {
+        const l = (Math.max(src[i], src[i+1], src[i+2]) + Math.min(src[i], src[i+1], src[i+2])) / 510;
+        sumL += l; cntL++;
+      }
+    }
+    const avgL = cntL > 0 ? sumL / cntL : 0.5;
+
     for (let i = 0; i < src.length; i += 4) {
       const idx = i / 4;
+      const x = idx % w;
+      const y = Math.floor(idx / w);
       const r = src[i], g = src[i + 1], b = src[i + 2], a = src[i + 3];
 
-      // Fondo → preservar
-      if (backgroundMask[idx]) {
+      // Decidir si pintar
+      let shouldPaint = false;
+
+      if (currentMask) {
+        // Usar máscara de SAM2
+        const mx = Math.floor((x / w) * currentMask.width);
+        const my = Math.floor((y / h) * currentMask.height);
+        const maskValue = currentMask.data[my * currentMask.width + mx];
+        shouldPaint = maskValue > 0.5;
+      } else {
+        // Fallback: reglas heurísticas
+        shouldPaint = !shouldPreservePixel(r, g, b);
+      }
+
+      if (!shouldPaint) {
         out[i] = r; out[i + 1] = g; out[i + 2] = b; out[i + 3] = a;
         continue;
       }
 
-      const zone = zoneMask ? zoneMask[idx] : 1;
-
-      // Metal/perla/negro → preservar
-      if (shouldPreservePixel(r, g, b, isLumina, zone)) {
-        out[i] = r; out[i + 1] = g; out[i + 2] = b; out[i + 3] = a;
-        continue;
-      }
-
-      // Elegir objetivo según zona
+      // Color objetivo
       let targetH = AH, targetS = AS, targetL = AL, achrom = isAchromatic;
-      let refAvg  = avgL1;
-      if (isLumina && zone === 2) {
-        targetH = BH; targetS = BS; targetL = BL; achrom = isAchrom2;
-        refAvg  = avgL2;
+      if (isLumina) {
+        const l0 = (Math.max(r, g, b) + Math.min(r, g, b)) / 510;
+        if (l0 < 0.4) { // Zona inferior (borgoña)
+          targetH = BH; targetS = BS; targetL = BL;
+        }
       }
 
-      // Luminancia original
-      const l0 = getLum(r, g, b);
+      // Luminancia y recoloreado
+      const [h0, s0, l0] = rgbToHsl(r, g, b);
+      const deltaL = (l0 - avgL) * 0.85;
+      const newL = Math.max(0.05, Math.min(0.95, targetL + deltaL));
 
-      // Ganancia dinámica: conserva textura sin aplastar extremos
-      const headroom = Math.min(targetL, 1 - targetL) * 2;   // 0..1
-      const gain     = 0.15 + 0.65 * headroom;
-
-      const newL = Math.max(0.03, Math.min(0.97,
-        targetL + (l0 - refAvg) * gain
-      ));
-
-      // Salida acromática → escala de grises pura (sin tinte de hue)
       if (achrom) {
         const v = Math.round(newL * 255);
         out[i] = v; out[i + 1] = v; out[i + 2] = v; out[i + 3] = a;
-        continue;
+      } else {
+        const newS = Math.min(1, targetS * 0.85 + s0 * 0.15);
+        const [nr, ng, nb] = hslToRgb(targetH, newS, newL);
+        out[i] = nr; out[i + 1] = ng; out[i + 2] = nb; out[i + 3] = a;
       }
-
-      // Salida cromática → reemplazo de hue/sat, luminancia remapeada
-      const [nr, ng, nb] = hslToRgb(targetH, targetS, newL);
-      out[i] = nr; out[i + 1] = ng; out[i + 2] = nb; out[i + 3] = a;
     }
 
     ctx.putImageData(new ImageData(out, w, h), 0, 0);
@@ -446,6 +445,10 @@
   currentModel = firstOpt.value;
   priceDisplay.textContent = `Precio base: $${parseInt(firstOpt.getAttribute('data-price')).toLocaleString('es-CL')}`;
   updateSecondColorVisibility();
+
+  // Inicializar interacción y SAM
+  setupCanvasInteraction();
+  initSAM();
   loadBagImage(firstOpt.getAttribute('data-img'));
 
   if ('serviceWorker' in navigator) {
