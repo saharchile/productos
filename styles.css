@@ -239,3 +239,5 @@ footer p { font-size: 0.9rem; color: #aaa; margin-bottom: 25px; }
         scroll-behavior: auto !important;
     }
 }
+/* Asegura que [hidden] oculte el segundo selector de Lumina */
+[hidden] { display: none !important; }
