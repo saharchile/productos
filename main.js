@@ -1,8 +1,7 @@
 /* =========================================================
-   Sahar - main.js (v5 con SAM2)
-   - Segmentación con SAM2 vía WebGPU
-   - Recoloreado basado en máscara de IA
-   - Fallback a reglas de color si SAM no está listo
+   Sahar - main.js (v6)
+   Recoloreado con máscaras pre-computadas (PNG)
+   Sin IA en el navegador, sin esperas, 100% confiable
    ========================================================= */
 
 (() => {
@@ -12,16 +11,10 @@
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* -------------------- Elementos ----------------------- */
-  const canvas         = document.getElementById('bag-canvas');
+  const canvas = document.getElementById('bag-canvas');
   if (!canvas) return;
 
-  const ctx            = canvas.getContext('2d', { willReadFrequently: true });
-  const overlay        = document.getElementById('sam-overlay');
-  const overlayCtx     = overlay.getContext('2d');
-  const pointsCanvas   = document.getElementById('sam-points');
-  const pointsCtx      = pointsCanvas.getContext('2d');
-  const canvasWrapper  = document.getElementById('canvas-wrapper');
-  const samStatus      = document.getElementById('sam-status');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
   const modelSelect      = document.getElementById('model-select');
   const colorPicker      = document.getElementById('color-picker');
@@ -35,16 +28,14 @@
 
   const TELEFONO = "56927572626";
 
+  const MASK_BASE = 'imagenes/modelos/masks/';
+
   /* -------------------- Estado -------------------------- */
   let originalImageData = null;
-  let samWorker         = null;
-  let samReady          = false;
-  let currentMask       = null;   // { data: Float32Array, width, height }
+  let currentMaskData   = null;   // ImageData de la máscara
   let currentModel      = null;
-  let currentPoints     = [];     // puntos de clic (normalizados 0-1)
-  let currentImageBitmap= null;
 
-  /* -------------------- Conversión de color ------------- */
+  /* -------------------- Conversión ---------------------- */
   function hexToRgb(hex) {
     hex = hex.replace('#', '');
     if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
@@ -93,197 +84,64 @@
     return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
   }
 
-  /* -------------------- SAM Worker ---------------------- */
-  function initSAM() {
-    samWorker = new Worker('sam-worker.js');
-
-    samWorker.onmessage = (event) => {
-      const { type, stage, mask, message } = event.data;
-
-      if (type === 'progress') {
-        if (stage === 'downloading') {
-          showStatus('Cargando modelo de IA...');
-        } else if (stage === 'loading') {
-          showStatus('Preparando segmentación...');
-        }
-      }
-
-      if (type === 'ready') {
-        samReady = true;
-        hideStatus();
-        // Si ya hay una imagen cargada, segmentar
-        if (currentImageBitmap) {
-          requestSegmentation(currentImageBitmap);
-        }
-      }
-
-      if (type === 'mask') {
-        currentMask = mask;
-        applyColor(); // Reaplicar color con la máscara
-      }
-
-      if (type === 'error') {
-        console.error('SAM error:', message);
-        showStatus('Error en IA, usando método alternativo');
-        setTimeout(hideStatus, 3000);
-      }
-    };
-
-    samWorker.postMessage({ type: 'init' });
-  }
-
-  function requestSegmentation(imageBitmap) {
-    if (!samWorker || !samReady) return;
-
-    // Usar el centro de la imagen como punto inicial
-    // o el primer punto clicado por el usuario
-    const point = currentPoints.length > 0
-      ? currentPoints[0]
-      : { x: 0.5, y: 0.5 };
-
-    // Convertir ImageBitmap a ImageData para el worker
-    const offCanvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
-    const offCtx = offCanvas.getContext('2d');
-    offCtx.drawImage(imageBitmap, 0, 0);
-    const imageData = offCtx.getImageData(0, 0, imageBitmap.width, imageBitmap.height);
-
-    samWorker.postMessage({
-      type: 'segment',
-      payload: {
-        imageData: {
-          data: imageData.data.buffer,
-          width: imageBitmap.width,
-          height: imageBitmap.height
-        },
-        point
-      }
-    });
-  }
-
-  /* -------------------- Interacción con el canvas ------- */
-  function setupCanvasInteraction() {
-    overlay.addEventListener('click', (e) => {
-      if (!samReady) {
-        showStatus('Esperando que la IA esté lista...');
-        return;
-      }
-
-      const rect = overlay.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width;   // normalizado 0-1
-      const y = (e.clientY - rect.top) / rect.height;
-
-      currentPoints.push({ x, y });
-
-      // Dibujar punto visual
-      drawPoints();
-
-      // Re-segmentar con el nuevo punto
-      if (currentImageBitmap) {
-        requestSegmentation(currentImageBitmap);
-      }
-    });
-  }
-
-  function drawPoints() {
-    pointsCtx.clearRect(0, 0, pointsCanvas.width, pointsCanvas.height);
-    currentPoints.forEach((p, i) => {
-      const x = p.x * pointsCanvas.width;
-      const y = p.y * pointsCanvas.height;
-      pointsCtx.beginPath();
-      pointsCtx.arc(x, y, 6, 0, Math.PI * 2);
-      pointsCtx.fillStyle = i === 0 ? '#FF4444' : '#44FF44';
-      pointsCtx.fill();
-      pointsCtx.strokeStyle = 'white';
-      pointsCtx.lineWidth = 2;
-      pointsCtx.stroke();
-    });
-  }
-
-  function clearPoints() {
-    currentPoints = [];
-    pointsCtx.clearRect(0, 0, pointsCanvas.width, pointsCanvas.height);
-  }
-
-  /* -------------------- Status UI ----------------------- */
-  function showStatus(text) {
-    samStatus.textContent = text;
-    samStatus.classList.add('visible');
-  }
-
-  function hideStatus() {
-    samStatus.classList.remove('visible');
-  }
-
-  /* ---------- Preservación heurística (fallback) -------- */
-  function shouldPreservePixel(r, g, b) {
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    const d = max - min;
-    const l = (max + min) / 510;
-    const s = max === 0 ? 0 : d / max;
-
-    if (l < 0.09) return true;
-    if (l > 0.90 && s < 0.10) return true;
-
-    let h = 0;
-    if (d !== 0) {
-      if (max === r) h = 60 * (((g - b) / d) % 6);
-      else if (max === g) h = 60 * ((b - r) / d + 2);
-      else h = 60 * ((r - g) / d + 4);
-      if (h < 0) h += 360;
-    }
-
-    if (h >= 25 && h <= 65 && s > 0.50 && (r - b) > 70 && l > 0.35) return true;
-    if (s < 0.06 && l > 0.55 && Math.abs(r - b) < 12) return true;
-
-    return false;
-  }
-
-  /* ------------------ Cargar imagen ---------------------- */
-  function loadBagImage(src) {
+  /* ------------------ Cargar imagen y máscara ----------- */
+  function loadBagImage(src, modelName) {
     canvas.classList.add('loading');
-    clearPoints();
-    currentMask = null;
 
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => {
+
+    const maskSrc = `${MASK_BASE}${modelName}.png`;
+    const maskImg = new Image();
+    maskImg.crossOrigin = 'anonymous';
+
+    let imgLoaded = false, maskLoaded = false;
+
+    const tryReady = () => {
+      if (!imgLoaded || !maskLoaded) return;
+
       const MAX = 500;
       const scale = Math.min(MAX / img.naturalWidth, MAX / img.naturalHeight, 1);
       canvas.width  = Math.round(img.naturalWidth  * scale);
       canvas.height = Math.round(img.naturalHeight * scale);
-
-      // Sincronizar overlays con el canvas
-      overlay.width = canvas.width;
-      overlay.height = canvas.height;
-      pointsCanvas.width = canvas.width;
-      pointsCanvas.height = canvas.height;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
       try {
         originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        applyColor();
-
-        // Generar ImageBitmap para SAM
-        createImageBitmap(img).then((bitmap) => {
-          currentImageBitmap = bitmap;
-          if (samReady) {
-            requestSegmentation(bitmap);
-          } else {
-            showStatus('La IA está cargando, espera un momento...');
-          }
-        });
       } catch (e) {
-        console.error('Error leyendo la imagen:', e);
+        console.error('Error leyendo imagen:', e);
       }
+
+      // Leer máscara (redimensionada al tamaño del canvas)
+      const maskCanvas = document.createElement('canvas');
+      maskCanvas.width  = canvas.width;
+      maskCanvas.height = canvas.height;
+      const maskCtx = maskCanvas.getContext('2d');
+      maskCtx.drawImage(maskImg, 0, 0, canvas.width, canvas.height);
+      currentMaskData = maskCtx.getImageData(0, 0, canvas.width, canvas.height);
+
+      applyColor();
       canvas.classList.remove('loading');
     };
+
+    img.onload = () => { imgLoaded = true; tryReady(); };
+    maskImg.onload = () => { maskLoaded = true; tryReady(); };
+
     img.onerror = () => {
       console.error('No se pudo cargar la imagen:', src);
       canvas.classList.remove('loading');
     };
+    maskImg.onerror = () => {
+      console.error('No se pudo cargar la máscara:', maskSrc);
+      // Si no hay máscara, dejamos la imagen original sin recolorear
+      imgLoaded = true; maskLoaded = true;
+      tryReady();
+    };
+
     img.src = src;
+    maskImg.src = maskSrc;
   }
 
   /* ------------------ Recolorear píxeles ----------------- */
@@ -305,63 +163,52 @@
     const src = originalImageData.data;
     const out = new Uint8ClampedArray(src.length);
     const w = canvas.width, h = canvas.height;
+    const maskData = currentMaskData ? currentMaskData.data : null;
 
-    // Calcular luminancia promedio para fallback
-    let sumL = 0, cntL = 0;
-    if (!currentMask) {
-      for (let i = 0; i < src.length; i += 4) {
-        const l = (Math.max(src[i], src[i+1], src[i+2]) + Math.min(src[i], src[i+1], src[i+2])) / 510;
-        sumL += l; cntL++;
-      }
+    // Promedios por zona (para normalizar luminosidad)
+    let sumL1 = 0, cnt1 = 0, sumL2 = 0, cnt2 = 0;
+    for (let i = 0; i < src.length; i += 4) {
+      if (!maskData || maskData[i] < 128) continue;
+      const r = src[i], g = src[i+1], b = src[i+2];
+      const l = (Math.max(r,g,b) + Math.min(r,g,b)) / 510;
+      if (isLumina && l < 0.5) { sumL2 += l; cnt2++; }
+      else                     { sumL1 += l; cnt1++; }
     }
-    const avgL = cntL > 0 ? sumL / cntL : 0.5;
+    const avgL1 = cnt1 > 0 ? sumL1 / cnt1 : 0.7;
+    const avgL2 = cnt2 > 0 ? sumL2 / cnt2 : 0.35;
 
     for (let i = 0; i < src.length; i += 4) {
-      const idx = i / 4;
-      const x = idx % w;
-      const y = Math.floor(idx / w);
-      const r = src[i], g = src[i + 1], b = src[i + 2], a = src[i + 3];
+      const r = src[i], g = src[i+1], b = src[i+2], a = src[i+3];
 
-      // Decidir si pintar
-      let shouldPaint = false;
+      // Máscara: blanco = pintar, negro = preservar
+      const paint = !maskData || maskData[i] > 128;
 
-      if (currentMask) {
-        // Usar máscara de SAM2
-        const mx = Math.floor((x / w) * currentMask.width);
-        const my = Math.floor((y / h) * currentMask.height);
-        const maskValue = currentMask.data[my * currentMask.width + mx];
-        shouldPaint = maskValue > 0.5;
-      } else {
-        // Fallback: reglas heurísticas
-        shouldPaint = !shouldPreservePixel(r, g, b);
-      }
-
-      if (!shouldPaint) {
-        out[i] = r; out[i + 1] = g; out[i + 2] = b; out[i + 3] = a;
+      if (!paint) {
+        out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = a;
         continue;
       }
 
-      // Color objetivo
+      // Elegir color objetivo y referencia
       let targetH = AH, targetS = AS, targetL = AL, achrom = isAchromatic;
-      if (isLumina) {
-        const l0 = (Math.max(r, g, b) + Math.min(r, g, b)) / 510;
-        if (l0 < 0.4) { // Zona inferior (borgoña)
-          targetH = BH; targetS = BS; targetL = BL;
-        }
+      let refAvg = avgL1;
+
+      const l0 = (Math.max(r,g,b) + Math.min(r,g,b)) / 510;
+      if (isLumina && l0 < 0.5) {
+        targetH = BH; targetS = BS; targetL = BL;
+        refAvg = avgL2;
       }
 
-      // Luminancia y recoloreado
-      const [h0, s0, l0] = rgbToHsl(r, g, b);
-      const deltaL = (l0 - avgL) * 0.85;
+      const deltaL = (l0 - refAvg) * 0.85;
       const newL = Math.max(0.05, Math.min(0.95, targetL + deltaL));
 
       if (achrom) {
         const v = Math.round(newL * 255);
-        out[i] = v; out[i + 1] = v; out[i + 2] = v; out[i + 3] = a;
+        out[i] = v; out[i+1] = v; out[i+2] = v; out[i+3] = a;
       } else {
+        const [, s0] = rgbToHsl(r, g, b);
         const newS = Math.min(1, targetS * 0.85 + s0 * 0.15);
         const [nr, ng, nb] = hslToRgb(targetH, newS, newL);
-        out[i] = nr; out[i + 1] = ng; out[i + 2] = nb; out[i + 3] = a;
+        out[i] = nr; out[i+1] = ng; out[i+2] = nb; out[i+3] = a;
       }
     }
 
@@ -369,7 +216,7 @@
     updateCanvasLabel();
   }
 
-  /* -------- Accesibilidad -------------------------------- */
+  /* -------------------- Accesibilidad ------------------- */
   function updateCanvasLabel() {
     const opt = modelSelect.options[modelSelect.selectedIndex];
     const color = colorPicker.value.toUpperCase();
@@ -386,14 +233,14 @@
     }
   }
 
-  /* -------------------- Eventos -------------------------- */
+  /* -------------------- Eventos ------------------------- */
   modelSelect.addEventListener('change', () => {
     const opt = modelSelect.options[modelSelect.selectedIndex];
     currentModel = opt.value;
     const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
     priceDisplay.textContent = `Precio base: $${price}`;
     updateSecondColorVisibility();
-    loadBagImage(opt.getAttribute('data-img'));
+    loadBagImage(opt.getAttribute('data-img'), currentModel);
   });
 
   colorPicker.addEventListener('input', () => {
@@ -440,16 +287,12 @@
     window.open(`https://wa.me/${TELEFONO}?text=${mensaje}`, '_blank', 'noopener,noreferrer');
   });
 
-  /* -------------------- Init ----------------------------- */
+  /* -------------------- Init ---------------------------- */
   const firstOpt = modelSelect.options[0];
   currentModel = firstOpt.value;
   priceDisplay.textContent = `Precio base: $${parseInt(firstOpt.getAttribute('data-price')).toLocaleString('es-CL')}`;
   updateSecondColorVisibility();
-
-  // Inicializar interacción y SAM
-  setupCanvasInteraction();
-  initSAM();
-  loadBagImage(firstOpt.getAttribute('data-img'));
+  loadBagImage(firstOpt.getAttribute('data-img'), currentModel);
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
