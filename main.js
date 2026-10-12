@@ -1,12 +1,14 @@
 /* =========================================================
    Sahar - main.js
-   Preservación mejorada de metales (oro, rose gold, bronce,
-   cobre, plata) y perlas. Detección de zonas para Lumina.
+   - Detección de zonas para Lumina (crema + borgoña)
+   - Normalización de luminosidad para imágenes oscurecidas
+   - Preservación refinada de metales, perlas y herrajes
    ========================================================= */
 
 (() => {
   'use strict';
 
+  /* -------------------- Año dinámico -------------------- */
   const yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
@@ -15,20 +17,25 @@
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  const modelSelect = document.getElementById('model-select');
-  const colorPicker = document.getElementById('color-picker');
-  const colorPicker2 = document.getElementById('color-picker-2');
-  const colorHex = document.getElementById('color-hex');
-  const colorHex2 = document.getElementById('color-hex-2');
-  const colorLabel1 = document.getElementById('color-label-1');
-  const secondColorGroup = document.getElementById('second-color-group');
-  const priceDisplay = document.getElementById('selected-price');
-  const btnQuote = document.getElementById('btn-quote');
+  const modelSelect     = document.getElementById('model-select');
+  const colorPicker     = document.getElementById('color-picker');
+  const colorPicker2    = document.getElementById('color-picker-2');
+  const colorHex        = document.getElementById('color-hex');
+  const colorHex2       = document.getElementById('color-hex-2');
+  const colorLabel1     = document.getElementById('color-label-1');
+  const secondColorGroup= document.getElementById('second-color-group');
+  const priceDisplay    = document.getElementById('selected-price');
+  const btnQuote        = document.getElementById('btn-quote');
 
   const TELEFONO = "56927572626";
 
+  /* -------------------- Estado -------------------------- */
   let originalImageData = null;
-  let backgroundMask = null;
+  let backgroundMask    = null;
+  let zoneMask          = null;   // 1 = zona superior (crema) · 2 = zona inferior (borgoña) · solo Lumina
+  let avgL1             = 0.70;   // luminosidad promedio del tejido (zona 1 o general)
+  let avgL2             = 0.40;   // luminosidad promedio del tejido (zona 2, solo Lumina)
+  let currentModel      = null;
 
   /* -------------------- Conversión de color ------------- */
   function hexToRgb(hex) {
@@ -79,13 +86,16 @@
     return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
   }
 
-  /* -------- Preservación de metales y perlas ------------ */
-  function shouldPreservePixel(r, g, b) {
+  /* -------- Preservación de metales, perlas, oscuros ----- */
+  function shouldPreservePixel(r, g, b, isLumina, zone) {
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    const d = max - min;
-    const l = (max + min) / 510;       // 0..1
-    const s = max === 0 ? 0 : d / max; // saturación HSV
+    const d   = max - min;
+    const l   = (max + min) / 510;         // 0..1
+    const s   = max === 0 ? 0 : d / max;   // saturación HSV (más limpia que HSL)
+
+    // 1) Muy oscuro: textos negros, herrajes negros, cadenas oscuras
+    if (l < 0.15) return true;
 
     // Hue
     let h = 0;
@@ -95,20 +105,18 @@
       else h = 60 * ((r - g) / d + 4);
       if (h < 0) h += 360;
     }
-
-    // 1) Muy oscuro: herrajes negros, sombras profundas, textos
-    if (l < 0.15) return true;
+    const isWarmHue = h >= 330 || h <= 95;
 
     // 2) Escala de grises: plata, cromo, acero, perlas blancas
     if (s < 0.10 && l > 0.25) return true;
 
     // 3) Metales cálidos: oro, rose gold, bronce, cobre
-    //    - Hue cálido (rojo-anaranjado-amarillo)
-    //    - Dominancia R sobre B
-    //    - Verde ≥ azul (cálidos puros) con saturación media,
-    //      O saturación alta (rose gold)
-    const isWarmHue = h >= 330 || h <= 95;
     if (isWarmHue && (r - b) > 30 && ((g >= b && s > 0.20) || s > 0.40)) {
+      // En la zona borgoña de Lumina, solo preservar si es CLARAMENTE metálico
+      // (los herrajes son brillantes, el borgoña no)
+      if (isLumina && zone === 2) {
+        return l > 0.55;
+      }
       return true;
     }
 
@@ -118,12 +126,11 @@
     return false;
   }
 
-  /* -------- Detección de zonas para Lumina --------------- */
-  // Devuelve 1 = crema (superior), 2 = borgoña (inferior)
+  /* -------- Detección de zonas para Lumina -------------- */
   function detectLuminaZone(r, g, b) {
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    const d = max - min;
+    const d   = max - min;
     let h = 0;
     if (d !== 0) {
       if (max === r) h = 60 * (((g - b) / d) % 6);
@@ -131,12 +138,38 @@
       else h = 60 * ((r - g) / d + 4);
       if (h < 0) h += 360;
     }
-    // Borgoña: rojo oscuro, alta dominancia R-G
-    if ((h >= 330 || h <= 20) && d > 30 && (r - g) > 30) return 2;
+    const s = max === 0 ? 0 : d / max;
+    const l = (max + min) / 510;
+
+    // Borgoña: rojos/rojo oscuro saturados
+    if ((h >= 330 || h <= 25) && s > 0.35) return 2;
+
     // Crema: cálido amarillento
-    if (h >= 20 && h <= 75) return 1;
+    if (h >= 25 && h <= 80) return 1;
+
     // Fallback por luminancia
-    return (max + min) / 2 > 128 ? 1 : 2;
+    return l > 0.55 ? 1 : 2;
+  }
+
+  /* -------- Suavizado del mapa de zonas ----------------- */
+  // Corrige píxeles ambiguos en el zigzag entre crema y borgoña.
+  function smoothZones(zones, w, h) {
+    const out = new Uint8Array(zones);
+    for (let y = 1; y < h - 1; y++) {
+      for (let x = 1; x < w - 1; x++) {
+        const i = y * w + x;
+        const ns = [i - 1, i + 1, i - w, i + w, i - w - 1, i - w + 1, i + w - 1, i + w + 1];
+        let c1 = 0, c2 = 0;
+        for (const n of ns) {
+          if (zones[n] === 1) c1++;
+          else if (zones[n] === 2) c2++;
+        }
+        // Si 5 o más vecinos son de una zona, forzar ese valor
+        if (c1 >= 5 && c1 > c2) out[i] = 1;
+        else if (c2 >= 5 && c2 > c1) out[i] = 2;
+      }
+    }
+    return out;
   }
 
   /* ---------- Flood fill para detectar el fondo ---------- */
@@ -190,6 +223,44 @@
     });
   }
 
+  /* -------- Estadísticas (zonas + luminosidad) ----------- */
+  function computeStats() {
+    const w = canvas.width, h = canvas.height;
+    const data = originalImageData.data;
+    const isLumina = currentModel === 'Lumina';
+
+    // 1) Mapa de zonas (solo Lumina)
+    if (isLumina) {
+      zoneMask = new Uint8Array(w * h);
+      for (let i = 0; i < w * h; i++) {
+        const p = i * 4;
+        zoneMask[i] = detectLuminaZone(data[p], data[p + 1], data[p + 2]);
+      }
+      zoneMask = smoothZones(zoneMask, w, h);
+    } else {
+      zoneMask = null;
+    }
+
+    // 2) Promedio de luminosidad por zona (excluyendo fondo y metales)
+    let sum1 = 0, cnt1 = 0;
+    let sum2 = 0, cnt2 = 0;
+
+    for (let i = 0; i < w * h; i++) {
+      if (backgroundMask[i]) continue;
+      const p = i * 4;
+      const r = data[p], g = data[p + 1], b = data[p + 2];
+      const zone = zoneMask ? zoneMask[i] : 1;
+      if (shouldPreservePixel(r, g, b, isLumina, zone)) continue;
+
+      const l = (Math.max(r, g, b) + Math.min(r, g, b)) / 510;
+      if (zone === 2) { sum2 += l; cnt2++; }
+      else            { sum1 += l; cnt1++; }
+    }
+
+    avgL1 = cnt1 > 0 ? sum1 / cnt1 : 0.70;
+    avgL2 = cnt2 > 0 ? sum2 / cnt2 : 0.40;
+  }
+
   /* ------------------ Cargar imagen ---------------------- */
   function loadBagImage(src) {
     canvas.classList.add('loading');
@@ -198,15 +269,16 @@
     img.onload = () => {
       const MAX = 500;
       const scale = Math.min(MAX / img.naturalWidth, MAX / img.naturalHeight, 1);
-      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.width  = Math.round(img.naturalWidth  * scale);
       canvas.height = Math.round(img.naturalHeight * scale);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
       try {
         originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        backgroundMask = new Uint8Array(canvas.width * canvas.height);
+        backgroundMask    = new Uint8Array(canvas.width * canvas.height);
         detectBackground();
+        computeStats();
         applyColor();
       } catch (e) {
         console.error('Error leyendo la imagen:', e);
@@ -224,7 +296,7 @@
   function applyColor() {
     if (!originalImageData || !backgroundMask) return;
 
-    const isLumina = modelSelect.value === 'Lumina';
+    const isLumina = currentModel === 'Lumina';
 
     const [Ar, Ag, Ab] = hexToRgb(colorPicker.value);
     const [AH, AS, AL] = rgbToHsl(Ar, Ag, Ab);
@@ -237,57 +309,64 @@
 
     const src = originalImageData.data;
     const out = new Uint8ClampedArray(src.length);
-    const w = canvas.width;
+    const w = canvas.width, h = canvas.height;
 
     for (let i = 0; i < src.length; i += 4) {
-      const px = (i / 4) % w;
-      const py = Math.floor((i / 4) / w);
+      const idx = i / 4;
       const r = src[i], g = src[i + 1], b = src[i + 2], a = src[i + 3];
 
-      // Fondo → preservar
-      if (backgroundMask[py * w + px]) {
+      // 1) Fondo → preservar
+      if (backgroundMask[idx]) {
         out[i] = r; out[i + 1] = g; out[i + 2] = b; out[i + 3] = a;
         continue;
       }
 
-      // Metales, perlas, negros → preservar
-      if (shouldPreservePixel(r, g, b)) {
+      const zone = zoneMask ? zoneMask[idx] : 1;
+
+      // 2) Metales / perlas / oscuros → preservar
+      if (shouldPreservePixel(r, g, b, isLumina, zone)) {
         out[i] = r; out[i + 1] = g; out[i + 2] = b; out[i + 3] = a;
         continue;
       }
 
-      // Determinar color objetivo según zona
+      // 3) Color objetivo según zona
       let targetH = AH, targetS = AS, targetL = AL;
-      if (isLumina) {
-        const zone = detectLuminaZone(r, g, b);
-        if (zone === 2) {
-          targetH = BH; targetS = BS; targetL = BL;
-        }
+      let avgL    = avgL1;
+      if (isLumina && zone === 2) {
+        targetH = BH; targetS = BS; targetL = BL;
+        avgL    = avgL2;
       }
 
-      // Recolorear conservando textura
-      const [h, s, l] = rgbToHsl(r, g, b);
-      const newS = Math.min(1, targetS * 0.85 + s * 0.15);
-      const lShift = (targetL - 0.5) * 0.6;
-      const newL = Math.max(0.05, Math.min(0.95, l + lShift));
+      // 4) Recolorear
+      const [h0, s0, l0] = rgbToHsl(r, g, b);
+
+      // Desplazamiento de luminosidad:
+      //  - Si el tejido es más oscuro que el color objetivo → aclarar fuerte (arregla Aurora)
+      //  - Si el tejido es más claro que el color objetivo → oscurecer suave (mantiene Alba/Rocío)
+      const delta = targetL - avgL;
+      const shift = delta > 0 ? delta * 0.85 : (targetL - 0.5) * 0.6;
+      const newL  = Math.max(0.05, Math.min(0.95, l0 + shift));
+
+      const newS = Math.min(1, targetS * 0.85 + s0 * 0.15);
+
       const [nr, ng, nb] = hslToRgb(targetH, newS, newL);
       out[i] = nr; out[i + 1] = ng; out[i + 2] = nb; out[i + 3] = a;
     }
 
-    ctx.putImageData(new ImageData(out, w, canvas.height), 0, 0);
+    ctx.putImageData(new ImageData(out, w, h), 0, 0);
     updateCanvasLabel();
   }
 
   /* -------- Accesibilidad: label dinámico del canvas ----- */
   function updateCanvasLabel() {
-    const modelo = modelSelect.options[modelSelect.selectedIndex].text;
+    const opt = modelSelect.options[modelSelect.selectedIndex];
     const color = colorPicker.value.toUpperCase();
-    canvas.setAttribute('aria-label', `Vista previa del modelo ${modelo} en color ${color}`);
+    canvas.setAttribute('aria-label', `Vista previa del modelo ${opt.text} en color ${color}`);
   }
 
-  /* --------- Visibilidad del segundo color (Lumina) ------ */
+  /* -------- Visibilidad del segundo color (Lumina) ------- */
   function updateSecondColorVisibility() {
-    const isLumina = modelSelect.value === 'Lumina';
+    const isLumina = currentModel === 'Lumina';
     if (secondColorGroup) secondColorGroup.hidden = !isLumina;
     if (colorLabel1) {
       colorLabel1.textContent = isLumina
@@ -299,6 +378,7 @@
   /* -------------------- Eventos -------------------------- */
   modelSelect.addEventListener('change', () => {
     const opt = modelSelect.options[modelSelect.selectedIndex];
+    currentModel = opt.value;
     const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
     priceDisplay.textContent = `Precio base: $${price}`;
     updateSecondColorVisibility();
@@ -317,7 +397,8 @@
     });
   }
 
-  document.querySelectorAll('.color-preset').forEach(el => {
+  // Presets del primer color
+  document.querySelectorAll('.primary-presets .color-preset').forEach(el => {
     el.addEventListener('click', () => {
       const c = el.getAttribute('data-color');
       colorPicker.value = c;
@@ -326,6 +407,19 @@
     });
   });
 
+  // Presets del segundo color (Lumina)
+  document.querySelectorAll('.secondary-presets .color-preset').forEach(el => {
+    el.addEventListener('click', () => {
+      const c = el.getAttribute('data-color');
+      if (colorPicker2) {
+        colorPicker2.value = c;
+        colorHex2.textContent = c.toUpperCase();
+        applyColor();
+      }
+    });
+  });
+
+  // Cotizar por WhatsApp
   btnQuote.addEventListener('click', () => {
     const modelo = modelSelect.value;
     const opt = modelSelect.options[modelSelect.selectedIndex];
@@ -340,6 +434,7 @@
 
   /* -------------------- Init ----------------------------- */
   const firstOpt = modelSelect.options[0];
+  currentModel = firstOpt.value;
   priceDisplay.textContent = `Precio base: $${parseInt(firstOpt.getAttribute('data-price')).toLocaleString('es-CL')}`;
   updateSecondColorVisibility();
   loadBagImage(firstOpt.getAttribute('data-img'));
