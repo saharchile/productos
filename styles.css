@@ -189,13 +189,20 @@ footer {
     background: var(--dark); color: var(--white);
     text-align: center; padding: 55px 5% 35px;
 }
+
+/* Logo del footer: se muestra sobre un fondo blanco elegante
+   para que se vea bien sobre el fondo oscuro */
 .footer-logo {
-    height: 55px;
+    height: 65px;
+    width: auto;
     margin: 0 auto 20px;
-    filter: invert(1);
-    mix-blend-mode: screen;
     display: block;
+    background: #FFFFFF;
+    padding: 6px 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
+
 footer p { font-size: 0.9rem; color: #aaa; margin-bottom: 25px; }
 .social-links { margin-bottom: 30px; }
 .social-links a {
