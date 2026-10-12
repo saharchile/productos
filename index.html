@@ -162,7 +162,7 @@
                         <option value="Lumina" data-price="40000" data-img="imagenes/modelos/creatusahar/ModeloLuminaFrontal.jpeg">Modelo Lumina — $40.000</option>
                     </select>
 
-                    <label for="color-picker">2. Elige tu color favorito:</label>
+                    <label for="color-picker" id="color-label-1">2. Elige tu color favorito:</label>
                     <div class="color-picker-wrapper">
                         <input type="color" id="color-picker" value="#E5A9B8">
                         <span class="color-name" id="color-hex">#E5A9B8</span>
@@ -177,6 +177,15 @@
                         <button type="button" class="color-preset" style="background:#A8C5D6" data-color="#A8C5D6" aria-label="Azul Cielo"></button>
                         <button type="button" class="color-preset" style="background:#B8A07A" data-color="#B8A07A" aria-label="Beige"></button>
                         <button type="button" class="color-preset" style="background:#4A5D4E" data-color="#4A5D4E" aria-label="Verde Bosque"></button>
+                    </div>
+
+                    <!-- Segundo color: solo se muestra para el modelo Lumina -->
+                    <div id="second-color-group" hidden>
+                        <label for="color-picker-2">3. Color secundario (parte inferior):</label>
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="color-picker-2" value="#8B1E3F">
+                            <span class="color-name" id="color-hex-2">#8B1E3F</span>
+                        </div>
                     </div>
 
                     <div class="note-info">
