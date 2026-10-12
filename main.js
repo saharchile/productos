@@ -1,8 +1,13 @@
 /* =========================================================
-   Sahar - main.js
-   - Detección de zonas para Lumina (crema + borgoña)
-   - Normalización de luminosidad para imágenes oscurecidas
-   - Preservación refinada de metales, perlas y herrajes
+   Sahar - main.js  (v3)
+   Cambios frente a v2:
+   - Se ELIMINA la preservación de "grises medios" (rompía Aurora)
+   - Preservación de blancos/perlas AHORA es adaptativa:
+     solo se preserva blanco si es más claro que el promedio del tejido
+     (evita "no pintar" Alba/Bruma blancos)
+   - Lumina: mapa de zonas más robusto + recoloreo normalizado
+     por promedio de zona → arregla parte inferior y bordes
+   - Metales cálidos: solo si saturación y dominancia R-B claras
    ========================================================= */
 
 (() => {
@@ -17,24 +22,24 @@
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  const modelSelect     = document.getElementById('model-select');
-  const colorPicker     = document.getElementById('color-picker');
-  const colorPicker2    = document.getElementById('color-picker-2');
-  const colorHex        = document.getElementById('color-hex');
-  const colorHex2       = document.getElementById('color-hex-2');
-  const colorLabel1     = document.getElementById('color-label-1');
-  const secondColorGroup= document.getElementById('second-color-group');
-  const priceDisplay    = document.getElementById('selected-price');
-  const btnQuote        = document.getElementById('btn-quote');
+  const modelSelect      = document.getElementById('model-select');
+  const colorPicker      = document.getElementById('color-picker');
+  const colorPicker2     = document.getElementById('color-picker-2');
+  const colorHex         = document.getElementById('color-hex');
+  const colorHex2        = document.getElementById('color-hex-2');
+  const colorLabel1      = document.getElementById('color-label-1');
+  const secondColorGroup = document.getElementById('second-color-group');
+  const priceDisplay     = document.getElementById('selected-price');
+  const btnQuote         = document.getElementById('btn-quote');
 
   const TELEFONO = "56927572626";
 
   /* -------------------- Estado -------------------------- */
   let originalImageData = null;
   let backgroundMask    = null;
-  let zoneMask          = null;   // 1 = zona superior (crema) · 2 = zona inferior (borgoña) · solo Lumina
-  let avgL1             = 0.70;   // luminosidad promedio del tejido (zona 1 o general)
-  let avgL2             = 0.40;   // luminosidad promedio del tejido (zona 2, solo Lumina)
+  let zoneMask          = null;
+  let avgL1             = 0.70;   // luminosidad promedio del tejido (zona 1 / general)
+  let avgL2             = 0.40;   // luminosidad promedio del tejido (zona 2, Lumina)
   let currentModel      = null;
 
   /* -------------------- Conversión de color ------------- */
@@ -87,15 +92,21 @@
   }
 
   /* -------- Preservación de metales, perlas, oscuros ----- */
+  // Nota: usa avgL1 / avgL2 (calculadas antes en computeStats)
   function shouldPreservePixel(r, g, b, isLumina, zone) {
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
     const d   = max - min;
-    const l   = (max + min) / 510;         // 0..1
-    const s   = max === 0 ? 0 : d / max;   // saturación HSV (más limpia que HSL)
+    const l   = (max + min) / 510;
+    const s   = max === 0 ? 0 : d / max;
 
-    // 1) Muy oscuro: textos negros, herrajes negros, cadenas oscuras
+    // 1) Muy oscuro: textos, herrajes negros, sombras profundas
     if (l < 0.15) return true;
+
+    // 2) Blancos/perlas: SOLO si el píxel es claramente más claro
+    //    que el promedio del tejido (evita no pintar Alba / Bruma blancos)
+    const refAvg = (isLumina && zone === 2) ? avgL2 : avgL1;
+    if (l > 0.86 && s < 0.18 && l > refAvg + 0.12) return true;
 
     // Hue
     let h = 0;
@@ -105,23 +116,18 @@
       else h = 60 * ((r - g) / d + 4);
       if (h < 0) h += 360;
     }
-    const isWarmHue = h >= 330 || h <= 95;
 
-    // 2) Escala de grises: plata, cromo, acero, perlas blancas
-    if (s < 0.10 && l > 0.25) return true;
-
-    // 3) Metales cálidos: oro, rose gold, bronce, cobre
-    if (isWarmHue && (r - b) > 30 && ((g >= b && s > 0.20) || s > 0.40)) {
-      // En la zona borgoña de Lumina, solo preservar si es CLARAMENTE metálico
-      // (los herrajes son brillantes, el borgoña no)
-      if (isLumina && zone === 2) {
-        return l > 0.55;
+    // 3) Metales cálidos y cuero (oro, bronce, cobre, rose gold)
+    const isWarmHue = (h >= 10 && h <= 100) || h >= 330;
+    if (isWarmHue && s > 0.30 && (r - b) > 30) {
+      if (isLumina) {
+        // Zona crema (1): solo metal dorado claro → s alta
+        if (zone === 1) return s > 0.50;
+        // Zona borgoña (2): solo herrajes muy brillantes → l alta
+        if (zone === 2) return l > 0.75;
       }
       return true;
     }
-
-    // 4) Perlas y blancos cálidos muy luminosos
-    if (l > 0.88 && s < 0.15) return true;
 
     return false;
   }
@@ -141,35 +147,38 @@
     const s = max === 0 ? 0 : d / max;
     const l = (max + min) / 510;
 
-    // Borgoña: rojos/rojo oscuro saturados
-    if ((h >= 330 || h <= 25) && s > 0.35) return 2;
+    // Borgoña: rojos oscuros saturados (incluye rosa fuerte)
+    if ((h >= 325 || h <= 25) && s > 0.35 && l < 0.65) return 2;
 
-    // Crema: cálido amarillento
+    // Crema / blanco / beige: cálidos o poco saturados
     if (h >= 25 && h <= 80) return 1;
+    if (s < 0.15 && l > 0.55) return 1;
 
     // Fallback por luminancia
     return l > 0.55 ? 1 : 2;
   }
 
   /* -------- Suavizado del mapa de zonas ----------------- */
-  // Corrige píxeles ambiguos en el zigzag entre crema y borgoña.
-  function smoothZones(zones, w, h) {
-    const out = new Uint8Array(zones);
-    for (let y = 1; y < h - 1; y++) {
-      for (let x = 1; x < w - 1; x++) {
-        const i = y * w + x;
-        const ns = [i - 1, i + 1, i - w, i + w, i - w - 1, i - w + 1, i + w - 1, i + w + 1];
-        let c1 = 0, c2 = 0;
-        for (const n of ns) {
-          if (zones[n] === 1) c1++;
-          else if (zones[n] === 2) c2++;
+  function smoothZones(zones, w, h, iterations) {
+    let src = zones;
+    for (let it = 0; it < iterations; it++) {
+      const out = new Uint8Array(src);
+      for (let y = 1; y < h - 1; y++) {
+        for (let x = 1; x < w - 1; x++) {
+          const i = y * w + x;
+          const ns = [i - 1, i + 1, i - w, i + w, i - w - 1, i - w + 1, i + w - 1, i + w + 1];
+          let c1 = 0, c2 = 0;
+          for (const n of ns) {
+            if (src[n] === 1) c1++;
+            else if (src[n] === 2) c2++;
+          }
+          if (c1 >= 5 && c1 > c2) out[i] = 1;
+          else if (c2 >= 5 && c2 > c1) out[i] = 2;
         }
-        // Si 5 o más vecinos son de una zona, forzar ese valor
-        if (c1 >= 5 && c1 > c2) out[i] = 1;
-        else if (c2 >= 5 && c2 > c1) out[i] = 2;
       }
+      src = out;
     }
-    return out;
+    return src;
   }
 
   /* ---------- Flood fill para detectar el fondo ---------- */
@@ -231,34 +240,31 @@
 
     // 1) Mapa de zonas (solo Lumina)
     if (isLumina) {
-      zoneMask = new Uint8Array(w * h);
+      const raw = new Uint8Array(w * h);
       for (let i = 0; i < w * h; i++) {
         const p = i * 4;
-        zoneMask[i] = detectLuminaZone(data[p], data[p + 1], data[p + 2]);
+        raw[i] = detectLuminaZone(data[p], data[p + 1], data[p + 2]);
       }
-      zoneMask = smoothZones(zoneMask, w, h);
+      zoneMask = smoothZones(raw, w, h, 2);
     } else {
       zoneMask = null;
     }
 
-    // 2) Promedio de luminosidad por zona (excluyendo fondo y metales)
+    // 2) Promedios de luminosidad por zona (sobre todo el tejido,
+    //    sin usar shouldPreservePixel para evitar dependencia circular)
     let sum1 = 0, cnt1 = 0;
     let sum2 = 0, cnt2 = 0;
-
     for (let i = 0; i < w * h; i++) {
       if (backgroundMask[i]) continue;
       const p = i * 4;
       const r = data[p], g = data[p + 1], b = data[p + 2];
-      const zone = zoneMask ? zoneMask[i] : 1;
-      if (shouldPreservePixel(r, g, b, isLumina, zone)) continue;
-
       const l = (Math.max(r, g, b) + Math.min(r, g, b)) / 510;
+      const zone = zoneMask ? zoneMask[i] : 1;
       if (zone === 2) { sum2 += l; cnt2++; }
       else            { sum1 += l; cnt1++; }
     }
-
     avgL1 = cnt1 > 0 ? sum1 / cnt1 : 0.70;
-    avgL2 = cnt2 > 0 ? sum2 / cnt2 : 0.40;
+    avgL2 = cnt2 > 0 ? sum2 / cnt2 : 0.35;
   }
 
   /* ------------------ Cargar imagen ---------------------- */
@@ -329,26 +335,19 @@
         continue;
       }
 
-      // 3) Color objetivo según zona
+      // 3) Color y promedio objetivo según zona
       let targetH = AH, targetS = AS, targetL = AL;
-      let avgL    = avgL1;
+      let refAvg  = avgL1;
       if (isLumina && zone === 2) {
         targetH = BH; targetS = BS; targetL = BL;
-        avgL    = avgL2;
+        refAvg  = avgL2;
       }
 
-      // 4) Recolorear
+      // 4) Recolorear preservando la textura (delta de luminosidad relativo)
       const [h0, s0, l0] = rgbToHsl(r, g, b);
-
-      // Desplazamiento de luminosidad:
-      //  - Si el tejido es más oscuro que el color objetivo → aclarar fuerte (arregla Aurora)
-      //  - Si el tejido es más claro que el color objetivo → oscurecer suave (mantiene Alba/Rocío)
-      const delta = targetL - avgL;
-      const shift = delta > 0 ? delta * 0.85 : (targetL - 0.5) * 0.6;
-      const newL  = Math.max(0.05, Math.min(0.95, l0 + shift));
-
-      const newS = Math.min(1, targetS * 0.85 + s0 * 0.15);
-
+      const deltaL = (l0 - refAvg) * 0.85;
+      const newL   = Math.max(0.05, Math.min(0.95, targetL + deltaL));
+      const newS   = Math.min(1, targetS * 0.85 + s0 * 0.15);
       const [nr, ng, nb] = hslToRgb(targetH, newS, newL);
       out[i] = nr; out[i + 1] = ng; out[i + 2] = nb; out[i + 3] = a;
     }
