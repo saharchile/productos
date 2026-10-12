@@ -1,8 +1,8 @@
 /* =========================================================
-   Sahar - main.js (v7)
-   Recoloreado con máscaras pre-computadas (PNG)
-   - Soporta máscaras con fondo transparente O negro
-   - Fuerza alpha=255 en la salida para evitar tableros
+   Sahar - main.js (v8)
+   - Usa data-mask para cargar la máscara (evita problema con tildes)
+   - Limpia la máscara anterior al cargar un nuevo modelo
+   - Verifica alpha en la máscara (compatibilidad con PNG transparentes)
    ========================================================= */
 
 (() => {
@@ -83,13 +83,16 @@
   }
 
   /* ------------------ Cargar imagen y máscara ----------- */
-  function loadBagImage(src, modelName) {
+  function loadBagImage(src, maskName) {
     canvas.classList.add('loading');
+
+    // ✅ FIX: limpiar la máscara anterior para no reutilizarla si falla la nueva
+    currentMaskData = null;
 
     const img = new Image();
     img.crossOrigin = 'anonymous';
 
-    const maskSrc = `${MASK_BASE}${modelName}.png`;
+    const maskSrc = `${MASK_BASE}${maskName}.png`;
     const maskImg = new Image();
     maskImg.crossOrigin = 'anonymous';
 
@@ -161,17 +164,17 @@
     const w = canvas.width, h = canvas.height;
     const maskData = currentMaskData ? currentMaskData.data : null;
 
-    // Promedios por zona (para normalizar luminosidad)
+    // Promedios de luminosidad por zona (solo sobre tejido de la máscara)
     let sumL1 = 0, cnt1 = 0, sumL2 = 0, cnt2 = 0;
-    for (let i = 0; i < src.length; i += 4) {
-      if (!maskData) break;
-      // ✅ NUEVO: también verificar alpha para ignorar transparentes
-      const isOpaqueWhite = maskData[i + 3] > 128 && maskData[i] > 128;
-      if (!isOpaqueWhite) continue;
-      const r = src[i], g = src[i+1], b = src[i+2];
-      const l = (Math.max(r,g,b) + Math.min(r,g,b)) / 510;
-      if (isLumina && l < 0.5) { sumL2 += l; cnt2++; }
-      else                     { sumL1 += l; cnt1++; }
+    if (maskData) {
+      for (let i = 0; i < src.length; i += 4) {
+        const isOpaqueWhite = maskData[i + 3] > 128 && maskData[i] > 128;
+        if (!isOpaqueWhite) continue;
+        const r = src[i], g = src[i+1], b = src[i+2];
+        const l = (Math.max(r,g,b) + Math.min(r,g,b)) / 510;
+        if (isLumina && l < 0.5) { sumL2 += l; cnt2++; }
+        else                     { sumL1 += l; cnt1++; }
+      }
     }
     const avgL1 = cnt1 > 0 ? sumL1 / cnt1 : 0.7;
     const avgL2 = cnt2 > 0 ? sumL2 / cnt2 : 0.35;
@@ -179,11 +182,10 @@
     for (let i = 0; i < src.length; i += 4) {
       const r = src[i], g = src[i+1], b = src[i+2];
 
-      // ✅ FIX PRINCIPAL: pintar solo si el píxel de la máscara es opaco Y blanco
+      // Pintar solo si la máscara es opaca Y blanca
       const paint = !maskData || (maskData[i + 3] > 128 && maskData[i] > 128);
 
       if (!paint) {
-        // Preservar pixel original, forzando alpha opaco
         out[i] = r; out[i+1] = g; out[i+2] = b; out[i+3] = 255;
         continue;
       }
@@ -236,10 +238,12 @@
   modelSelect.addEventListener('change', () => {
     const opt = modelSelect.options[modelSelect.selectedIndex];
     currentModel = opt.value;
+    // ✅ FIX: usar data-mask para la ruta (sin tildes)
+    const maskName = opt.getAttribute('data-mask') || opt.value;
     const price = parseInt(opt.getAttribute('data-price')).toLocaleString('es-CL');
     priceDisplay.textContent = `Precio base: $${price}`;
     updateSecondColorVisibility();
-    loadBagImage(opt.getAttribute('data-img'), currentModel);
+    loadBagImage(opt.getAttribute('data-img'), maskName);
   });
 
   colorPicker.addEventListener('input', () => {
@@ -289,9 +293,10 @@
   /* -------------------- Init ---------------------------- */
   const firstOpt = modelSelect.options[0];
   currentModel = firstOpt.value;
+  const firstMaskName = firstOpt.getAttribute('data-mask') || firstOpt.value;
   priceDisplay.textContent = `Precio base: $${parseInt(firstOpt.getAttribute('data-price')).toLocaleString('es-CL')}`;
   updateSecondColorVisibility();
-  loadBagImage(firstOpt.getAttribute('data-img'), currentModel);
+  loadBagImage(firstOpt.getAttribute('data-img'), firstMaskName);
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
