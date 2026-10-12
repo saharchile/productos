@@ -38,9 +38,9 @@
   const MASK_CONFIG = {
     Alba:   { scale: 1.00, offsetX: 0, offsetY: 0 },
     Aurora: { scale: 1.00, offsetX: 0, offsetY: 0 },
-    Rocio:  { scale: 1.10, offsetX: 0, offsetY: 0 },
-    Bruma:  { scale: 1.00, offsetX: 0, offsetY: 0 },
-    Lumina: { scale: 1.00, offsetX: 0, offsetY: 0 }
+    Rocio:  { scaleX: 1.15, scaleY: 1.00, offsetX: 0, offsetY: 0 },  // ← ajusta estos
+    Bruma:  { scaleX: 1.25, scaleY: 1.00, offsetX: 0, offsetY: 0 },  // ← ajusta estos
+    Lumina: { scaleX: 1.20, scaleY: 1.00, offsetX: 0, offsetY: 0 }
   };
 
   let originalImageData = null;
